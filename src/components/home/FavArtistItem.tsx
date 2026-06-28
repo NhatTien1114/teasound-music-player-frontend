@@ -15,7 +15,7 @@ export default function FavArtistItem({
     <div className="flex items-center gap-3 py-2.5 group cursor-pointer hover:bg-white/5 rounded-xl px-2 transition-colors duration-200">
       {/* Artist avatar */}
       <div
-        className={`w-12 h-12 rounded-full bg-gradient-to-br ${avatarGradient} flex-shrink-0 shadow-md`}
+        className={`w-12 h-12 rounded-full bg-linear-to-br ${avatarGradient} shrink-0 shadow-md`}
       />
 
       {/* Artist info */}

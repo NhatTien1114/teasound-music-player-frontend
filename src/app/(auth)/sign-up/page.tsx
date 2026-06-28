@@ -6,8 +6,7 @@ import { Field, FieldGroup } from '@/components/ui/field'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import Image from 'next/image'
-import { FaApple, FaGoogle } from "react-icons/fa";
-import { FaXTwitter } from "react-icons/fa6";
+import { FaFacebook, FaGoogle } from "react-icons/fa";
 import IconUser from '@/components/icons/IconUser'
 import IconLock from '@/components/icons/IconLock'
 import IconMail from '@/components/icons/IconMail'
@@ -158,13 +157,13 @@ const SignUpContent = () => {
                     </div>
 
                     {/* OAuth2 */}
-                    <div className="grid grid-cols-3 gap-4 m-5">
+                    <div className="grid grid-cols-2 gap-4 m-5">
                         <a
-                            href={`${process.env.NEXT_PUBLIC_BACKEND_URL}/oauth2/authorization/apple`}
+                            href={`${process.env.NEXT_PUBLIC_BACKEND_URL}/oauth2/authorization/facebook`}
                             className="h-10 rounded-lg border border-grayDarker bg-grayDarker flex items-center justify-center text-white hover:bg-grayDarkest transition"
                             onClick={() => setIsLoading(true)}
                         >
-                            <FaApple size={18} />
+                            <FaFacebook size={18} />
                         </a>
 
                         <a
@@ -173,14 +172,6 @@ const SignUpContent = () => {
                             onClick={() => setIsLoading(true)}
                         >
                             <FaGoogle size={18} />
-                        </a>
-
-                        <a
-                            href={`${process.env.NEXT_PUBLIC_BACKEND_URL}/oauth2/authorization/twitter`}
-                            className="h-10 rounded-lg border border-grayDarker bg-grayDarker flex items-center justify-center text-white hover:bg-grayDarkest transition"
-                            onClick={() => setIsLoading(true)}
-                        >
-                            <FaXTwitter size={18} />
                         </a>
                     </div>
                 </div>

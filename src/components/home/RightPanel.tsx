@@ -16,9 +16,9 @@ const favArtists = [
 
 export default function RightPanel() {
   return (
-    <aside className="w-64 flex-shrink-0 space-y-6">
+    <aside className="w-64 shrink-0 space-y-6">
       {/* Upgrade Card */}
-      <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-pink-500 via-purple-500 to-blue-500 p-6 min-h-[200px] flex flex-col justify-between">
+      <div className="relative rounded-2xl overflow-hidden bg-linear-to-br from-pink-500 via-purple-500 to-blue-500 p-6 min-h-[200px] flex flex-col justify-between">
         {/* Decorative blurs */}
         <div className="absolute top-4 right-4 w-20 h-20 rounded-full bg-pink-400/30 blur-xl" />
         <div className="absolute bottom-6 right-10 w-14 h-14 rounded-full bg-blue-400/30 blur-lg" />

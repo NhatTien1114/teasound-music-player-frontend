@@ -10,7 +10,7 @@ export default function TopBar() {
     <header className="flex justify-center items-center gap-4 px-6 py-4">
 
       {/* Navigation arrows */}
-      <div className="absolute left-5 flex items-center gap-1 flex-shrink-0">
+      <div className="absolute left-5 flex items-center gap-1 shrink-0">
         <button className="p-2 rounded-full hover:bg-white/5 text-white/70 hover:text-white transition-colors duration-200">
           <ChevronLeft className="w-5 h-5" />
         </button>

@@ -5,13 +5,12 @@ import { Field, FieldGroup } from '@/components/ui/field'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import Image from 'next/image'
-import { FaApple, FaGoogle } from "react-icons/fa";
-import { FaXTwitter } from "react-icons/fa6";
 import IconUser from '@/components/icons/IconUser'
 import IconLock from '@/components/icons/IconLock'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useSearchParams } from 'next/navigation'
+import { FaFacebook, FaGoogle } from 'react-icons/fa';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -131,13 +130,13 @@ const SignInContent = () => {
                     </div>
 
                     {/* OAuth2 */}
-                    <div className="grid grid-cols-3 gap-4 m-5">
+                    <div className="grid grid-cols-2 gap-4 m-5">
                         <a
-                            href={`${BACKEND_URL}/oauth2/authorization/apple`}
+                            href={`${BACKEND_URL}/oauth2/authorization/facebook`}
                             className="h-10 rounded-lg border border-grayDarker bg-grayDarker flex items-center justify-center text-white hover:bg-grayDarkest transition"
                             onClick={() => setIsLoading(true)}
                         >
-                            <FaApple size={18} />
+                            <FaFacebook size={18} />
                         </a>
 
                         <a
@@ -146,14 +145,6 @@ const SignInContent = () => {
                             onClick={() => setIsLoading(true)}
                         >
                             <FaGoogle size={18} />
-                        </a>
-
-                        <a
-                            href={`${BACKEND_URL}/oauth2/authorization/twitter`}
-                            className="h-10 rounded-lg border border-grayDarker bg-grayDarker flex items-center justify-center text-white hover:bg-grayDarkest transition"
-                            onClick={() => setIsLoading(true)}
-                        >
-                            <FaXTwitter size={18} />
                         </a>
                     </div>
                 </div>

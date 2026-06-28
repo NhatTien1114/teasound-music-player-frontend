@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { UserService } from "@/services/UserService";
 
 const sidebarItems = [
   { id: "home", icon: Home, label: "Home" },
@@ -31,24 +32,23 @@ export default function SideBar() {
   const [userData, setUserData] = useState<{ username?: string, avatar?: string, plan?: string } | null>(null);
 
   useEffect(() => {
-    const checkAuth = () => {
-      // Giả lập check login state từ localStorage
-      const loggedIn = localStorage.getItem("isLoggedIn") === "true";
-      setIsLoggedIn(loggedIn);
-      
-      if (loggedIn) {
-        try {
-          const userStr = localStorage.getItem("user");
-          if (userStr) {
-            setUserData(JSON.parse(userStr));
-          } else {
-             // Fallback default
-             setUserData({ username: "Tea User", plan: "Free plan" });
-          }
-        } catch (e) {
-           setUserData({ username: "Tea User", plan: "Free plan" });
+    const checkAuth = async () => {
+      try {
+        const userProfile = await UserService.getCurrentUser();
+
+        if (userProfile && userProfile.authenticated) {
+          setIsLoggedIn(true);
+          setUserData({
+            username: userProfile.name || userProfile.email || "Tea User",
+            plan: userProfile.role === 'ADMIN' ? 'Quản trị viên' : (userProfile.role ? 'Người dùng' : 'Khách'),
+            avatar: userProfile.avatarUrl
+          });
+        } else {
+          setIsLoggedIn(false);
+          setUserData(null);
         }
-      } else {
+      } catch (error) {
+        setIsLoggedIn(false);
         setUserData(null);
       }
     };
@@ -60,7 +60,7 @@ export default function SideBar() {
   return (
     <aside
       className={cn(
-        "flex flex-col flex-shrink-0 transition-all duration-300 ease-in-out border-r border-white/5",
+        "flex flex-col shrink-0 transition-all duration-300 ease-in-out border-r border-white/5",
         isCollapsed ? "w-[72px] items-center" : "w-64 px-4 items-stretch"
       )}
     >
@@ -68,13 +68,19 @@ export default function SideBar() {
       <div className={cn("flex items-center", isCollapsed ? "justify-center" : "justify-between w-full")}>
         {!isCollapsed && (
           <div className="flex-1 flex justify-center pl-1 animate-in fade-in duration-300">
-            <Image
-              src="/TeaSound.png"
-              alt="Logo"
-              width={200}
-              height={50}
-              className="w-40 h-auto object-contain drop-shadow-md"
-            />
+            <button
+              onClick={() => router.push("/")}
+              className="cursor-pointer"
+            >
+              <Image
+                src="/TeaSound.png"
+                alt="Logo"
+                width={200}
+                height={50}
+                className="w-40 h-auto object-contain drop-shadow-md"
+              />
+            </button>
+
           </div>
         )}
         <button
@@ -95,7 +101,7 @@ export default function SideBar() {
           <>
             <button
               onClick={() => router.push("/profile")}
-              className="w-10 h-10 rounded-full bg-secondary/80 flex items-center justify-center hover:bg-secondary transition-colors duration-200 shadow-md shadow-secondary/20 flex-shrink-0 overflow-hidden">
+              className="w-10 h-10 rounded-full bg-secondary/80 flex items-center justify-center hover:bg-secondary transition-colors duration-200 shadow-md shadow-secondary/20 shrink-0 overflow-hidden">
               {userData?.avatar ? (
                 <Image src={userData.avatar} alt="Avatar" width={40} height={40} className="object-cover w-full h-full" />
               ) : (
@@ -106,8 +112,8 @@ export default function SideBar() {
             </button>
             {!isCollapsed && (
               <div className="ml-3 flex flex-col justify-center overflow-hidden whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-300">
-                <span className="text-sm text-white font-medium">{userData?.username || "Tea User"}</span>
-                <span className="text-xs text-grayDark">{userData?.plan || "Free plan"}</span>
+                <span className="text-sm text-white font-medium">{userData?.username || "Người dùng"}</span>
+                <span className="text-xs text-grayDark">{userData?.plan || "Khách"}</span>
               </div>
             )}
           </>
@@ -115,7 +121,7 @@ export default function SideBar() {
           <>
             <button
               onClick={() => router.push("/sign-in")}
-              className="w-10 h-10 rounded-full bg-grayDarker flex items-center justify-center hover:bg-white/10 transition-colors duration-200 flex-shrink-0">
+              className="w-10 h-10 rounded-full bg-grayDarker flex items-center justify-center hover:bg-white/10 transition-colors duration-200 shrink-0">
               <User className="w-5 h-5 text-grayDark" />
             </button>
             {!isCollapsed && (
@@ -153,7 +159,7 @@ export default function SideBar() {
               title={isCollapsed ? item.label : undefined}
             >
               <Icon
-                className="w-5 h-5 flex-shrink-0"
+                className="w-5 h-5 shrink-0"
                 strokeWidth={isActive ? 2.5 : 1.5}
               />
 

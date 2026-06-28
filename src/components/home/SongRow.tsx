@@ -19,7 +19,7 @@ export default function SongRow({
     <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-white/5 transition-colors duration-200 group cursor-pointer">
       {/* Album art placeholder */}
       <div
-        className={`w-10 h-10 rounded-lg bg-gradient-to-br ${avatarGradient} flex-shrink-0 shadow-md`}
+        className={`w-10 h-10 rounded-lg bg-linear-to-br ${avatarGradient} shrink-0 shadow-md`}
       />
 
       {/* Song info */}

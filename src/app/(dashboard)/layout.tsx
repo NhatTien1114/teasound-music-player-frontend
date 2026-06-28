@@ -19,7 +19,7 @@ const layout = ({ children }: { children: React.ReactNode }) => {
                     <SideBar />
 
                     {/* Main Content Area */}
-                    <div className="flex flex-col flex-1 overflow-hidden my-2 mr-2 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
+                    <div className="flex flex-col flex-1 overflow-hidden my-2 mr-2 rounded-2xl bg-white/2 border border-white/5">
                         <main className="flex-1 overflow-y-auto px-6 pb-6">
                             {children}
                         </main>

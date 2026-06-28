@@ -35,8 +35,8 @@ export default function NowPlayingBar() {
   return (
     <div className="flex items-center gap-5 px-6 py-3 bg-grayDarker/80 backdrop-blur-xl border-t border-white/5">
       {/* Song Info */}
-      <div className="flex items-center gap-3 w-52 flex-shrink-0">
-        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-200 via-orange-300 to-pink-400 flex-shrink-0 shadow-lg shadow-orange-500/20 animate-[spin_8s_linear_infinite]" />
+      <div className="flex items-center gap-3 w-52 shrink-0">
+        <div className="w-12 h-12 rounded-full bg-linear-to-br from-amber-200 via-orange-300 to-pink-400 shrink-0 shadow-lg shadow-orange-500/20 animate-[spin_8s_linear_infinite]" />
         <div className="min-w-0">
           <p className="text-sm font-semibold text-white truncate">
             Dark paradise
@@ -46,13 +46,13 @@ export default function NowPlayingBar() {
       </div>
 
       {/* Transport Controls */}
-      <div className="flex items-center gap-3 flex-shrink-0">
+      <div className="flex items-center gap-3 shrink-0">
         <button className="text-grayDark hover:text-white transition-colors duration-200">
           <SkipBack className="w-5 h-5" fill="currentColor" />
         </button>
         <button
           onClick={() => setIsPlaying(!isPlaying)}
-          className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-300 active:scale-95"
+          className="w-10 h-10 rounded-full bg-linear-to-r from-purple-500 to-pink-500 flex items-center justify-center hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-300 active:scale-95"
         >
           {isPlaying ? (
             <Pause className="w-4 h-4 text-white" fill="white" />
@@ -72,9 +72,8 @@ export default function NowPlayingBar() {
           return (
             <div
               key={i}
-              className={`flex-1 rounded-full min-w-[2px] transition-colors duration-150 ${
-                isPlayed ? "bg-pink-500" : "bg-white/10"
-              }`}
+              className={`flex-1 rounded-full min-w-[2px] transition-colors duration-150 ${isPlayed ? "bg-pink-500" : "bg-white/10"
+                }`}
               style={{ height: `${height}%` }}
             />
           );
@@ -82,14 +81,14 @@ export default function NowPlayingBar() {
       </div>
 
       {/* Time */}
-      <div className="flex items-center gap-2 flex-shrink-0 text-xs text-grayDark tabular-nums">
+      <div className="flex items-center gap-2 shrink-0 text-xs text-grayDark tabular-nums">
         <span>0:36</span>
         <span className="text-white/20">/</span>
         <span>3:50</span>
       </div>
 
       {/* Extra Controls */}
-      <div className="flex items-center gap-3 flex-shrink-0">
+      <div className="flex items-center gap-3 shrink-0">
         <button className="text-yellow-400 hover:text-yellow-300 transition-colors duration-200">
           <Star className="w-4 h-4" fill="currentColor" />
         </button>
