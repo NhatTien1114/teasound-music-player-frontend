@@ -5,7 +5,7 @@ import { TUserProfileResponse } from '@/types'
 import React, { useEffect, useState } from 'react'
 
 
-const page = () => {
+const Page = () => {
     const [userData, setUserData] = useState<TUserProfileResponse | null>(null);
     const fetchUser = async () => {
         try {
@@ -29,4 +29,4 @@ const page = () => {
     )
 }
 
-export default page
+export default Page
