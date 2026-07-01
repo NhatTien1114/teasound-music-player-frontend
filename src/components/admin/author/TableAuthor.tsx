@@ -11,101 +11,118 @@ import {
 } from "@/components/ui/table"
 import Link from 'next/link'
 import { commonClassNames } from '@/constants';
-import { ChevronLeft, ChevronRight, Edit, Trash2, Clock, Plus, Eye } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Edit, Trash2, Eye, Users, UserCircle } from 'lucide-react';
 import Image from 'next/image';
+import { TAuthorResponse } from '@/types';
+import Spinner from '@/components/icons/IconSpinner';
 
-const mockAuthors = [
-    {
-        id: 1,
-        name: "Sơn Tùng",
-        description: "Bản hit mang phong cách cổ trang kết hợp hiện đại",
-        avatar: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&q=80",
-    },
-    {
-        id: 2,
-        name: "Bích Phương",
-        description: "Ca khúc lãng mạn dành cho ngày Valentine",
-        avatar: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&q=80",
-    },
-    {
-        id: 3,
-        name: "Hà Anh Tuấn",
-        description: "Bản tình ca hoài niệm về tình yêu thanh xuân",
-        avatar: "https://images.unsplash.com/photo-1493225457124-a1a2a5f5646f?w=300&q=80",
+const TableAuthor = ({ authors, loading }: { authors: TAuthorResponse[], loading: boolean }) => {
+    if (loading) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20 bg-grayDarker rounded-xl border border-grayDark/20">
+                <Spinner className="size-6 text-primary" />
+                <p className="text-sm text-grayDark mt-3">Đang tải dữ liệu...</p>
+            </div>
+        )
     }
-];
 
-const TableAuthor = () => {
+    if (authors.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20 bg-grayDarker rounded-xl border border-grayDark/20">
+                <div className="p-4 rounded-full bg-grayDarkest/50 mb-4">
+                    <Users className="w-8 h-8 text-grayDark/50" />
+                </div>
+                <p className="text-grayDark font-medium">Chưa có tác giả nào</p>
+                <p className="text-sm text-grayDark/60 mt-1">Hãy thêm tác giả đầu tiên của bạn</p>
+                <Link
+                    href="/admin/authors/create"
+                    className="mt-4 px-4 py-2 rounded-lg bg-primary hover:bg-primary/90 text-white text-sm font-medium transition-all hover:scale-[1.02]"
+                >
+                    Thêm tác giả
+                </Link>
+            </div>
+        )
+    }
 
     return (
-        <div className="bg-grayDarker rounded-xl shadow-sm border border-grayDark/30 overflow-hidden text-white">
-            <Link
-                href="/admin/songs/new"
-                className="size-14 rounded-full bg-primary hover:bg-primary/90 flex justify-center items-center text-white fixed right-8 bottom-8 shadow-lg shadow-primary/30 transition-all hover:scale-110 z-50 group"
-            >
-                <Plus strokeWidth={2.5} className="w-7 h-7 group-hover:rotate-90 transition-transform duration-300" />
-            </Link>
-
-            <div className="p-5 border-b border-grayDark/20 flex justify-between items-center bg-grayDarkest/30">
-                <h2 className="text-lg font-semibold text-white">Danh sách Bài hát</h2>
-                <div className="text-sm text-grayDark">Tổng cộng: {mockAuthors.length} bài hát</div>
+        <div className="bg-grayDarker rounded-xl shadow-lg shadow-black/10 border border-grayDark/20 overflow-hidden text-white">
+            {/* Table Header Bar */}
+            <div className="px-6 py-4 border-b border-grayDark/15 flex justify-between items-center bg-gradient-to-r from-grayDarkest/40 to-transparent">
+                <div className="flex items-center gap-2.5">
+                    <div className="p-1.5 rounded-lg bg-violet-500/10 border border-violet-500/15">
+                        <Users className="w-4 h-4 text-violet-400" />
+                    </div>
+                    <h2 className="text-base font-semibold text-white">Danh sách Tác giả</h2>
+                </div>
+                <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium text-grayDark bg-grayDarkest/60 px-3 py-1.5 rounded-full border border-grayDark/10">
+                        {authors.length} tác giả
+                    </span>
+                </div>
             </div>
 
-            <Table className="table-responsive w-full">
-                <TableHeader className="bg-grayDarkest/50">
-                    <TableRow className="hover:bg-transparent border-grayDark/20">
-                        <TableHead className="font-semibold text-grayDark">Tên Tác giả</TableHead>
-                        <TableHead className="font-semibold text-grayDark">Giới thiệu</TableHead>
-                        <TableHead className="font-semibold text-grayDark text-right pr-6">Hành động</TableHead>
+            <Table className="w-full">
+                <TableHeader>
+                    <TableRow className="hover:bg-transparent border-grayDark/15 bg-grayDarkest/30">
+                        <TableHead className="font-semibold text-grayDark text-xs uppercase tracking-wider pl-6">Tác giả</TableHead>
+                        <TableHead className="font-semibold text-grayDark text-xs uppercase tracking-wider">Tiểu sử</TableHead>
+                        <TableHead className="font-semibold text-grayDark text-xs uppercase tracking-wider text-right pr-6">Hành động</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {mockAuthors.map((author) => (
-                        <TableRow key={author.id} className="border-grayDark/20 hover:bg-grayDarkest/40 transition-colors group">
-                            <TableCell className="py-4">
-                                <div className="flex items-center gap-4">
-                                    <div className="relative size-14 rounded-lg overflow-hidden shrink-0 shadow-sm border border-grayDark/30">
-                                        <Image
-                                            src={author.avatar}
-                                            alt={author.name}
-                                            fill
-                                            className="object-cover group-hover:scale-110 transition-transform duration-500"
-                                        />
+                    {authors.map((author, index) => (
+                        <TableRow
+                            key={author.id}
+                            className="border-grayDark/10 hover:bg-white/[0.02] transition-colors group"
+                        >
+                            <TableCell className="py-4 pl-6">
+                                <div className="flex items-center gap-3.5">
+                                    <div className="relative size-11 rounded-full overflow-hidden shrink-0 ring-2 ring-grayDark/10 group-hover:ring-primary/30 transition-all">
+                                        {author.avatar ? (
+                                            <Image
+                                                src={author.avatar.toString()}
+                                                alt={author.name ?? ""}
+                                                fill
+                                                className="object-cover group-hover:scale-110 transition-transform duration-500"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full bg-gradient-to-br from-violet-500/20 to-purple-600/20 flex items-center justify-center">
+                                                <UserCircle className="w-6 h-6 text-violet-400/60" />
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="font-semibold text-white line-clamp-1">{author.name}</span>
-                                        <span className="text-sm text-grayDark line-clamp-1 max-w-[300px]">{author.description}</span>
+                                        <span className="font-semibold text-white text-sm">{author.name}</span>
                                     </div>
                                 </div>
                             </TableCell>
                             <TableCell>
-                                <div className="flex items-center gap-1.5 text-grayDark font-medium bg-grayDarkest/50 w-fit px-2.5 py-1 rounded-md text-sm border border-grayDark/10">
-                                    <Clock className="w-4 h-4 text-grayDark" />
-                                    {author.description}
-                                </div>
+                                <p className="text-sm text-grayDark/80 line-clamp-2 max-w-[350px] leading-relaxed">
+                                    {author.bio || "Chưa có tiểu sử"}
+                                </p>
                             </TableCell>
                             <TableCell className="text-right pr-6">
-                                <div className="flex items-center justify-end gap-2 group-hover:opacity-100 transition-opacity">
+                                <div className="flex items-center justify-end gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
                                     <Link
-                                        className={commonClassNames.action + " bg-grayDarkest shadow-sm hover:text-secondary hover:border-secondary/50 border-grayDark/20 text-grayDark"}
+                                        className="size-8 rounded-lg border border-grayDark/15 bg-grayDarkest/50 flex items-center justify-center text-grayDark hover:text-sky-400 hover:border-sky-400/30 hover:bg-sky-400/5 transition-all"
                                         title="Xem"
                                         href={`/admin/authors/view/${author.id}`}
                                     >
-                                        <Eye className="w-4 h-4" />
+                                        <Eye className="w-3.5 h-3.5" />
                                     </Link>
                                     <Link
-                                        className={commonClassNames.action + " bg-grayDarkest shadow-sm hover:text-secondary hover:border-secondary/50 border-grayDark/20 text-grayDark"}
+                                        className="size-8 rounded-lg border border-grayDark/15 bg-grayDarkest/50 flex items-center justify-center text-grayDark hover:text-amber-400 hover:border-amber-400/30 hover:bg-amber-400/5 transition-all"
                                         title="Chỉnh sửa"
                                         href={`/admin/authors/edit/${author.id}`}
                                     >
-                                        <Edit className="w-4 h-4" />
+                                        <Edit className="w-3.5 h-3.5" />
                                     </Link>
                                     <Link
-                                        className={commonClassNames.action + " bg-grayDarkest shadow-sm hover:text-red-400 hover:border-red-500/50 border-grayDark/20 text-grayDark"}
+                                        className="size-8 rounded-lg border border-grayDark/15 bg-grayDarkest/50 flex items-center justify-center text-grayDark hover:text-red-400 hover:border-red-400/30 hover:bg-red-400/5 transition-all"
                                         title="Xoá"
                                         href={`/admin/authors/delete/${author.id}`}
                                     >
-                                        <Trash2 className="w-4 h-4" />
+                                        <Trash2 className="w-3.5 h-3.5" />
                                     </Link>
                                 </div>
                             </TableCell>
@@ -114,15 +131,16 @@ const TableAuthor = () => {
                 </TableBody>
             </Table>
 
-            <div className="p-4 border-t border-grayDark/20 flex justify-between items-center bg-grayDarkest/30">
-                <div className="text-sm text-grayDark">
-                    Hiển thị 1 đến 3 của 3 kết quả
+            {/* Pagination Footer */}
+            <div className="px-6 py-3.5 border-t border-grayDark/15 flex justify-between items-center bg-grayDarkest/20">
+                <div className="text-xs text-grayDark">
+                    Hiển thị <span className="text-white font-medium">1</span> đến <span className="text-white font-medium">{authors.length}</span> của <span className="text-white font-medium">{authors.length}</span> kết quả
                 </div>
-                <div className="flex gap-2">
-                    <button className={commonClassNames.paginationButton + " bg-grayDarkest border-grayDark/20 text-grayDark disabled:opacity-50 disabled:cursor-not-allowed"} disabled>
+                <div className="flex gap-1.5">
+                    <button className="size-8 rounded-lg border border-grayDark/15 bg-grayDarkest/50 flex items-center justify-center text-grayDark disabled:opacity-30 disabled:cursor-not-allowed hover:border-primary/30 hover:text-primary transition-all" disabled>
                         <ChevronLeft className="w-4 h-4" />
                     </button>
-                    <button className={commonClassNames.paginationButton + " bg-grayDarkest border-grayDark/20 text-grayDark disabled:opacity-50 disabled:cursor-not-allowed"} disabled>
+                    <button className="size-8 rounded-lg border border-grayDark/15 bg-grayDarkest/50 flex items-center justify-center text-grayDark disabled:opacity-30 disabled:cursor-not-allowed hover:border-primary/30 hover:text-primary transition-all" disabled>
                         <ChevronRight className="w-4 h-4" />
                     </button>
                 </div>

@@ -18,8 +18,9 @@ import { Input } from "@/components/ui/input";
 import { Save, Image as ImageIcon } from "lucide-react";
 import { UploadButton } from "@/utils/uploadthing";
 import Image from "next/image";
-import { createAuthor } from "@/services/AuthorService";
 import { toast } from "sonner";
+import { AuthorService } from "@/services/AuthorService";
+import { revalidatePath } from "next/cache";
 
 
 const formSchema = z.object({
@@ -43,12 +44,13 @@ function AddNewAuthor() {
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsSubmitting(true);
         try {
-            const res = await createAuthor({
+            const res = await AuthorService.createAuthor({
                 data: values
             });
             if (res?.success) {
                 toast.success(res?.message);
                 form.reset();
+                revalidatePath('/admin/authors')
             } else {
                 toast.error(res?.message);
             }
@@ -124,7 +126,7 @@ function AddNewAuthor() {
                                                     onClientUploadComplete={(res) => {
                                                         // Do something with the response
                                                         console.log("Files: ", res);
-                                                        // form.setValue("thumbnailUrl", res[0].url);
+                                                        field.onChange(res[0].url);
                                                     }}
                                                     onUploadError={(error: Error) => {
                                                         // Do something with the error.

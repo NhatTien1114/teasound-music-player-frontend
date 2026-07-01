@@ -3,7 +3,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { TAuthorResponse, TSongResponse } from "@/types";
+import { AuthorService } from "@/services/AuthorService";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -27,13 +29,23 @@ import { Input } from "@/components/ui/input";
 import { Save, Image as ImageIcon, Link as LinkIcon, Clock, Headphones, Play } from "lucide-react";
 import { UploadButton } from "@/utils/uploadthing";
 import Image from "next/image";
+import { SongService } from "@/services/SongService";
+import { toast } from "sonner";
 
+
+const SONG_TYPES = [
+    "POP", "ROCK", "HIPHOP", "RNB", "EDM", "JAZZ",
+    "CLASSICAL", "LOFI", "KPOP", "VPOP", "ACOUSTIC",
+    "INDIE", "REMIX", "OTHER"
+] as const;
 
 const formSchema = z.object({
     name: z.string().min(2, { message: "Tên bài hát phải có ít nhất 2 ký tự" }),
     description: z.string().optional(),
-    type: z.enum(["AUDIO", "VIDEO"]),
-    author: z.string().optional(),
+    type: z.enum(SONG_TYPES, {
+        error: "Vui lòng chọn thể loại",
+    }),
+    author: z.string().min(1, { message: "Vui lòng chọn nghệ sĩ" }),
     videoUrl: z.string().optional(),
     audioUrl: z.string().optional(),
     thumbnailUrl: z.string().optional(),
@@ -42,13 +54,28 @@ const formSchema = z.object({
 
 function AddNewSong() {
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [authors, setAuthors] = useState<TAuthorResponse[]>([]);
+
+    useEffect(() => {
+        const fetchAuthors = async () => {
+            try {
+                const res = await AuthorService.getAllAuthors();
+                if (res.success && res.data) {
+                    setAuthors(res.data);
+                }
+            } catch (error) {
+                console.error("Error fetching authors:", error);
+            }
+        };
+        fetchAuthors();
+    }, []);
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: "",
             description: "",
-            type: "AUDIO",
+            type: undefined,
             author: "",
             videoUrl: "",
             audioUrl: "",
@@ -58,8 +85,24 @@ function AddNewSong() {
     });
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
-        // Chức năng sẽ được implement sau
-        console.log(values);
+        try {
+            setIsSubmitting(true);
+            const payload = {
+                ...values,
+                author: { id: parseInt(values.author) }
+            };
+            const response = await SongService.createSong({ data: payload as unknown as TSongResponse });
+            if (response.success) {
+                toast.success(response.message);
+                form.reset();
+            } else {
+                toast.error(response.message);
+            }
+        } catch (error: any) {
+            toast.error(error.message);
+        } finally {
+            setIsSubmitting(false);
+        }
     }
 
     const inputClasses = "bg-grayDarkest border-grayDark/20 text-white placeholder:text-grayDark/50 focus-visible:ring-primary focus-visible:border-primary/50 transition-all";
@@ -129,8 +172,11 @@ function AddNewSong() {
                                         </FormControl>
 
                                         <SelectContent>
-                                            <SelectItem value="AUDIO">Audio</SelectItem>
-                                            <SelectItem value="VIDEO">Video</SelectItem>
+                                            {SONG_TYPES.map((type) => (
+                                                <SelectItem key={type} value={type}>
+                                                    {type}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
 
@@ -142,11 +188,28 @@ function AddNewSong() {
                             control={form.control}
                             name="author"
                             render={({ field }) => (
-                                <FormItem className="space-y-3 w-full">
-                                    <FormLabel className="text-grayDark">Nghệ sĩ</FormLabel>
-                                    <FormControl>
-                                        <Input className={inputClasses} placeholder="Tên nghệ sĩ..." {...field} />
-                                    </FormControl>
+                                <FormItem className="w-full">
+                                    <FormLabel className="text-grayDark mb-3">Nghệ sĩ</FormLabel>
+
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        defaultValue={field.value}
+                                    >
+                                        <FormControl>
+                                            <SelectTrigger className={`${inputClasses} h-12 w-full text-sm`}>
+                                                <SelectValue placeholder="Chọn nghệ sĩ" />
+                                            </SelectTrigger>
+                                        </FormControl>
+
+                                        <SelectContent>
+                                            {authors.map((author) => (
+                                                <SelectItem key={author.id} value={author.id?.toString() || ""}>
+                                                    {author.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+
                                     <FormMessage className="text-red-400 text-xs" />
                                 </FormItem>
                             )}
@@ -171,7 +234,7 @@ function AddNewSong() {
                                                     onClientUploadComplete={(res) => {
                                                         // Do something with the response
                                                         console.log("Files: ", res);
-                                                        // form.setValue("thumbnailUrl", res[0].url);
+                                                        form.setValue("thumbnailUrl", res[0].url);
                                                     }}
                                                     onUploadError={(error: Error) => {
                                                         // Do something with the error.

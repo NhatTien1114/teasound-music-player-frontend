@@ -10,122 +10,94 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import Link from 'next/link'
-import { commonClassNames } from '@/constants';
-import { ChevronLeft, ChevronRight, Edit, Trash2, Clock, Music, Video, Plus, Eye } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Edit, Trash2, Clock, Music, Video, Eye, Music2, Disc3 } from 'lucide-react';
 import Image from 'next/image';
+import { TSongResponse } from '@/types';
 
-const mockSongs = [
-    {
-        id: 1,
-        name: "Lạc Trôi",
-        description: "Bản hit mang phong cách cổ trang kết hợp hiện đại",
-        type: "VIDEO",
-        thumbnailUrl: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&q=80",
-        duration: "03:52"
-    },
-    {
-        id: 2,
-        name: "Nơi Này Có Anh",
-        description: "Ca khúc lãng mạn dành cho ngày Valentine",
-        type: "AUDIO",
-        thumbnailUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&q=80",
-        duration: "04:20"
-    },
-    {
-        id: 3,
-        name: "Chúng Ta Của Hiện Tại",
-        description: "Bản tình ca hoài niệm về tình yêu thanh xuân",
-        type: "VIDEO",
-        thumbnailUrl: "https://images.unsplash.com/photo-1493225457124-a1a2a5f5646f?w=300&q=80",
-        duration: "05:02"
-    }
-];
-
-const TableSong = () => {
+const TableSong = ({ songs }: { songs: TSongResponse[] }) => {
 
     return (
-        <div className="bg-grayDarker rounded-xl shadow-sm border border-grayDark/30 overflow-hidden text-white">
-            <Link
-                href="/admin/songs/new"
-                className="size-14 rounded-full bg-primary hover:bg-primary/90 flex justify-center items-center text-white fixed right-8 bottom-8 shadow-lg shadow-primary/30 transition-all hover:scale-110 z-50 group"
-            >
-                <Plus strokeWidth={2.5} className="w-7 h-7 group-hover:rotate-90 transition-transform duration-300" />
-            </Link>
-
-            <div className="p-5 border-b border-grayDark/20 flex justify-between items-center bg-grayDarkest/30">
-                <h2 className="text-lg font-semibold text-white">Danh sách Bài hát</h2>
-                <div className="text-sm text-grayDark">Tổng cộng: {mockSongs.length} bài hát</div>
+        <div className="bg-grayDarker rounded-xl shadow-lg shadow-black/10 border border-grayDark/20 overflow-hidden text-white">
+            {/* Table Header Bar */}
+            <div className="px-6 py-4 border-b border-grayDark/15 flex justify-between items-center bg-gradient-to-r from-grayDarkest/40 to-transparent">
+                <div className="flex items-center gap-2.5">
+                    <div className="p-1.5 rounded-lg bg-sky-500/10 border border-sky-500/15">
+                        <Music2 className="w-4 h-4 text-sky-400" />
+                    </div>
+                    <h2 className="text-base font-semibold text-white">Danh sách Bài hát</h2>
+                </div>
+                <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium text-grayDark bg-grayDarkest/60 px-3 py-1.5 rounded-full border border-grayDark/10">
+                        {songs.length} bài hát
+                    </span>
+                </div>
             </div>
 
-            <Table className="table-responsive w-full">
-                <TableHeader className="bg-grayDarkest/50">
-                    <TableRow className="hover:bg-transparent border-grayDark/20">
-                        <TableHead className="font-semibold text-grayDark">Bài hát</TableHead>
-                        <TableHead className="font-semibold text-grayDark">Định dạng</TableHead>
-                        <TableHead className="font-semibold text-grayDark">Thời lượng</TableHead>
-                        <TableHead className="font-semibold text-grayDark text-right pr-6">Hành động</TableHead>
+            <Table className="w-full">
+                <TableHeader>
+                    <TableRow className="hover:bg-transparent border-grayDark/15 bg-grayDarkest/30">
+                        <TableHead className="font-semibold text-grayDark text-xs uppercase tracking-wider pl-6">Bài hát</TableHead>
+                        <TableHead className="font-semibold text-grayDark text-xs uppercase tracking-wider">Định dạng</TableHead>
+                        <TableHead className="font-semibold text-grayDark text-xs uppercase tracking-wider">Thời lượng</TableHead>
+                        <TableHead className="font-semibold text-grayDark text-xs uppercase tracking-wider text-right pr-6">Hành động</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {mockSongs.map((song) => (
-                        <TableRow key={song.id} className="border-grayDark/20 hover:bg-grayDarkest/40 transition-colors group">
-                            <TableCell className="py-4">
-                                <div className="flex items-center gap-4">
-                                    <div className="relative size-14 rounded-lg overflow-hidden shrink-0 shadow-sm border border-grayDark/30">
+                    {songs.map((song) => (
+                        <TableRow key={song.id} className="border-grayDark/10 hover:bg-white/[0.02] transition-colors group">
+                            <TableCell className="py-4 pl-6">
+                                <div className="flex items-center gap-3.5">
+                                    <div className="relative size-12 rounded-lg overflow-hidden shrink-0 ring-1 ring-grayDark/10 group-hover:ring-primary/30 transition-all">
                                         <Image
-                                            src={song.thumbnailUrl}
-                                            alt={song.name}
+                                            src={song.thumbnailUrl ?? ""}
+                                            alt={song.name ?? ""}
                                             fill
                                             className="object-cover group-hover:scale-110 transition-transform duration-500"
                                         />
+                                        {/* Play overlay */}
+                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
+                                            <Disc3 className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        </div>
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="font-semibold text-white line-clamp-1">{song.name}</span>
-                                        <span className="text-sm text-grayDark line-clamp-1 max-w-[300px]">{song.description}</span>
+                                        <span className="font-semibold text-white text-sm">{song.name}</span>
+                                        <span className="text-xs text-grayDark/70 line-clamp-1 max-w-[280px] mt-0.5">{song.description}</span>
                                     </div>
                                 </div>
                             </TableCell>
                             <TableCell>
-                                {song.type === 'VIDEO' ? (
-                                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/10 text-secondary text-xs font-medium border border-secondary/20">
-                                        <Video className="w-3.5 h-3.5" />
-                                        Video
-                                    </div>
-                                ) : (
-                                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-medium border border-emerald-500/20">
-                                        <Music className="w-3.5 h-3.5" />
-                                        Audio
-                                    </div>
-                                )}
+                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-violet-500/10 text-violet-400 text-xs font-medium border border-violet-500/15">
+                                    <span>{song.type?.toString()}</span>
+                                </div>
                             </TableCell>
                             <TableCell>
-                                <div className="flex items-center gap-1.5 text-grayDark font-medium bg-grayDarkest/50 w-fit px-2.5 py-1 rounded-md text-sm border border-grayDark/10">
-                                    <Clock className="w-4 h-4 text-grayDark" />
+                                <div className="flex items-center gap-1.5 text-grayDark/80 text-sm">
+                                    <Clock className="w-3.5 h-3.5" />
                                     {song.duration}
                                 </div>
                             </TableCell>
                             <TableCell className="text-right pr-6">
-                                <div className="flex items-center justify-end gap-2 group-hover:opacity-100 transition-opacity">
+                                <div className="flex items-center justify-end gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
                                     <Link
-                                        className={commonClassNames.action + " bg-grayDarkest shadow-sm hover:text-secondary hover:border-secondary/50 border-grayDark/20 text-grayDark"}
+                                        className="size-8 rounded-lg border border-grayDark/15 bg-grayDarkest/50 flex items-center justify-center text-grayDark hover:text-sky-400 hover:border-sky-400/30 hover:bg-sky-400/5 transition-all"
                                         title="Xem"
                                         href={`/admin/songs/view/${song.id}`}
                                     >
-                                        <Eye className="w-4 h-4" />
+                                        <Eye className="w-3.5 h-3.5" />
                                     </Link>
                                     <Link
-                                        className={commonClassNames.action + " bg-grayDarkest shadow-sm hover:text-secondary hover:border-secondary/50 border-grayDark/20 text-grayDark"}
+                                        className="size-8 rounded-lg border border-grayDark/15 bg-grayDarkest/50 flex items-center justify-center text-grayDark hover:text-amber-400 hover:border-amber-400/30 hover:bg-amber-400/5 transition-all"
                                         title="Chỉnh sửa"
                                         href={`/admin/songs/edit/${song.id}`}
                                     >
-                                        <Edit className="w-4 h-4" />
+                                        <Edit className="w-3.5 h-3.5" />
                                     </Link>
                                     <Link
-                                        className={commonClassNames.action + " bg-grayDarkest shadow-sm hover:text-red-400 hover:border-red-500/50 border-grayDark/20 text-grayDark"}
+                                        className="size-8 rounded-lg border border-grayDark/15 bg-grayDarkest/50 flex items-center justify-center text-grayDark hover:text-red-400 hover:border-red-400/30 hover:bg-red-400/5 transition-all"
                                         title="Xoá"
                                         href={`/admin/songs/delete/${song.id}`}
                                     >
-                                        <Trash2 className="w-4 h-4" />
+                                        <Trash2 className="w-3.5 h-3.5" />
                                     </Link>
                                 </div>
                             </TableCell>
@@ -134,15 +106,16 @@ const TableSong = () => {
                 </TableBody>
             </Table>
 
-            <div className="p-4 border-t border-grayDark/20 flex justify-between items-center bg-grayDarkest/30">
-                <div className="text-sm text-grayDark">
-                    Hiển thị 1 đến 3 của 3 kết quả
+            {/* Pagination Footer */}
+            <div className="px-6 py-3.5 border-t border-grayDark/15 flex justify-between items-center bg-grayDarkest/20">
+                <div className="text-xs text-grayDark">
+                    Hiển thị <span className="text-white font-medium">1</span> đến <span className="text-white font-medium">{songs.length}</span> của <span className="text-white font-medium">{songs.length}</span> kết quả
                 </div>
-                <div className="flex gap-2">
-                    <button className={commonClassNames.paginationButton + " bg-grayDarkest border-grayDark/20 text-grayDark disabled:opacity-50 disabled:cursor-not-allowed"} disabled>
+                <div className="flex gap-1.5">
+                    <button className="size-8 rounded-lg border border-grayDark/15 bg-grayDarkest/50 flex items-center justify-center text-grayDark disabled:opacity-30 disabled:cursor-not-allowed hover:border-primary/30 hover:text-primary transition-all" disabled>
                         <ChevronLeft className="w-4 h-4" />
                     </button>
-                    <button className={commonClassNames.paginationButton + " bg-grayDarkest border-grayDark/20 text-grayDark disabled:opacity-50 disabled:cursor-not-allowed"} disabled>
+                    <button className="size-8 rounded-lg border border-grayDark/15 bg-grayDarkest/50 flex items-center justify-center text-grayDark disabled:opacity-30 disabled:cursor-not-allowed hover:border-primary/30 hover:text-primary transition-all" disabled>
                         <ChevronRight className="w-4 h-4" />
                     </button>
                 </div>

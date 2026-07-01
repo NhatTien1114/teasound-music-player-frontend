@@ -36,24 +36,22 @@ const SignInContent = () => {
     return (
         <div className="relative w-screen h-screen">
             {/* Background image */}
-            <Image
+            {/* <Image
                 src="https://i.pinimg.com/736x/dc/ee/32/dcee32cad9ca5f226c9dac794b103a9e.jpg"
                 alt=""
                 fill
                 style={{ objectFit: "cover" }}
                 className="blur-sm"
-            />
+            /> */}
 
             <div className="relative z-10 flex justify-center items-center h-screen">
                 <div
                     className="
                                 h-130
                                 w-120
-                                rounded-3xl
-                                bg-white/5
-                                backdrop-blur-4xl
-                                border border-white/10
-                                shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.15)]"
+                                rounded-2xl
+                                bg-grayDarkest
+                                led-border"
                 >
                     {/* Ảnh logo */}
                     <div className="flex justify-center items-center mt-5">
@@ -155,9 +153,27 @@ const SignInContent = () => {
 
 const SignIn = () => {
     return (
-        <Suspense fallback={<div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin h-8 w-8 text-white" /></div>}>
-            <SignInContent />
-        </Suspense>
+        <div className="min-h-screen w-full bg-black relative">
+            {/* Midnight Aurora Glow Background */}
+            <div
+                className="absolute inset-0 z-0"
+                style={{
+                    backgroundImage: `
+          radial-gradient(circle at 50% 50%, 
+            rgba(58, 123, 255, 0.25) 0%, 
+            rgba(100, 149, 237, 0.15) 25%, 
+            rgba(123, 104, 238, 0.07) 35%, 
+            transparent 50%
+          )
+        `,
+                }}
+            />
+            {/* Your Content/Components */}
+            <Suspense fallback={<div className="flex h-screen items-center justify-center relative z-10"><Loader2 className="animate-spin h-8 w-8 text-white" /></div>}>
+                <SignInContent />
+            </Suspense>
+        </div>
+
     )
 }
 

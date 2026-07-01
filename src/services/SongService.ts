@@ -1,4 +1,4 @@
-import { TAuthorResponse } from "@/types";
+import { TSongResponse } from "@/types";
 import axios from "axios";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -33,12 +33,12 @@ type TApiResponse<T> = {
     data: T | null;
 };
 
-const createAuthor = async ({ data }: { data: TAuthorResponse }): Promise<TApiResponse<TAuthorResponse>> => {
+const createSong = async ({ data }: { data: TSongResponse }): Promise<TApiResponse<TSongResponse>> => {
     try {
-        const response = await axiosInstance.post("/api/authors/create", data);
+        const response = await axiosInstance.post("/api/songs/create", data);
         return {
             success: true,
-            message: "Author created successfully",
+            message: "Song created successfully",
             data: response.data
         };
     } catch (error: any) {
@@ -50,12 +50,12 @@ const createAuthor = async ({ data }: { data: TAuthorResponse }): Promise<TApiRe
     }
 }
 
-const getAllAuthors = async (): Promise<TApiResponse<TAuthorResponse[]>> => {
+const getAllSongs = async () => {
     try {
-        const response = await axiosInstance.get("/api/authors");
+        const response = await axiosInstance.get("/api/songs");
         return {
             success: true,
-            message: "Authors fetched successfully",
+            message: "Songs fetched successfully",
             data: response.data
         };
     } catch (error: any) {
@@ -67,7 +67,10 @@ const getAllAuthors = async (): Promise<TApiResponse<TAuthorResponse[]>> => {
     }
 }
 
-export const AuthorService = {
-    createAuthor,
-    getAllAuthors
+
+
+
+export const SongService = {
+    createSong,
+    getAllSongs
 }
