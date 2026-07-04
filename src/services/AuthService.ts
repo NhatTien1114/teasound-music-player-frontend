@@ -10,10 +10,10 @@ const axiosInstance = axios.create({
 export const AuthService = {
     logout: async (): Promise<void> => {
         try {
-            await axiosInstance.post("/api/auth/logout")
+            await axiosInstance.post("/api/auth/logout");
         } catch (error) {
             console.error('Lỗi khi đăng xuất:', error);
-            throw error
+            throw error;
         }
     }
 }

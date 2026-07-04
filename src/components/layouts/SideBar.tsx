@@ -15,6 +15,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { UserService } from "@/services/UserService";
+import { revalidatePath } from "next/cache";
 
 const sidebarItems = [
   { id: "home", icon: Home, label: "Home" },

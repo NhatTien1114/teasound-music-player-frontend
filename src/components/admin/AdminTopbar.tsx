@@ -1,9 +1,35 @@
 "use client";
 
 import { Bell, Search } from "lucide-react";
+import { useState, useEffect } from "react";
+import { UserService } from "@/services/UserService";
 import Image from "next/image";
+import { revalidatePath } from "next/cache";
 
 export default function AdminTopbar() {
+  const [userData, setUserData] = useState<{ username: string, avatarUrl: string | undefined, role: string } | null>(null);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const userProfile = await UserService.getCurrentUser();
+        if (userProfile && userProfile.authenticated && userProfile.role === "ADMIN") {
+          setUserData({
+            username: userProfile.name || userProfile.email || "Tea User",
+            role: userProfile.role || "Khách",
+            avatarUrl: userProfile.avatarUrl
+          });
+        } else {
+          setUserData(null);
+        }
+      } catch (error) {
+        setUserData(null);
+      }
+    };
+    checkAuth();
+    window.addEventListener("auth-change", checkAuth);
+    return () => window.removeEventListener("auth-change", checkAuth);
+  }, []);
   return (
     <header className="h-20 w-full flex items-center justify-between px-6 border-b border-white/5 bg-[#0D0D0D]">
       {/* Search Bar */}
@@ -30,13 +56,17 @@ export default function AdminTopbar() {
         <div className="flex items-center gap-3 cursor-pointer hover:bg-white/5 p-1.5 rounded-full pr-4 transition-colors duration-200">
           <div className="w-9 h-9 rounded-full bg-secondary overflow-hidden">
             {/* Fallback to T if no image */}
-            <div className="w-full h-full flex items-center justify-center text-white font-bold">
-              A
-            </div>
+            {userData?.avatarUrl ? (
+              <Image src={userData.avatarUrl} alt="Avatar" width={40} height={40} className="object-cover w-full h-full" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-white font-bold">
+                {userData?.username.charAt(0)}
+              </div>
+            )}
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-medium text-white leading-tight">Admin User</span>
-            <span className="text-xs text-primary leading-tight mt-0.5">Superadmin</span>
+            <span className="text-sm font-medium text-white leading-tight">{userData?.username}</span>
+            <span className="text-xs text-grayDark leading-tight mt-0.5">{userData?.role}</span>
           </div>
         </div>
       </div>
