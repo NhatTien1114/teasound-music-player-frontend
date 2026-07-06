@@ -276,7 +276,21 @@ function AddNewSong() {
                                         Audio URL
                                     </FormLabel>
                                     <FormControl>
-                                        <Input className={inputClasses} placeholder="https://..." {...field} />
+                                        <div className="flex flex-col gap-2">
+                                            <Input className={inputClasses} placeholder="https://..." {...field} />
+                                            <div className="flex items-start">
+                                                <UploadButton
+                                                    endpoint="audioUploader"
+                                                    onClientUploadComplete={(res) => {
+                                                        form.setValue("audioUrl", res[0].url);
+                                                        toast.success("Tải âm thanh lên thành công");
+                                                    }}
+                                                    onUploadError={(error: Error) => {
+                                                        toast.error(`Lỗi tải lên: ${error.message}`);
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
                                     </FormControl>
                                     <FormMessage className="text-red-400 text-xs" />
                                 </FormItem>
@@ -293,7 +307,9 @@ function AddNewSong() {
                                         Video URL
                                     </FormLabel>
                                     <FormControl>
-                                        <Input className={inputClasses} placeholder="https://..." {...field} />
+                                        <div className="flex flex-col gap-2">
+                                            <Input className={inputClasses} placeholder="https://..." {...field} />
+                                        </div>
                                     </FormControl>
                                     <FormMessage className="text-red-400 text-xs" />
                                 </FormItem>

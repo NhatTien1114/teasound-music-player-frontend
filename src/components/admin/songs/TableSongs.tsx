@@ -19,7 +19,7 @@ const TableSong = ({ songs }: { songs: TSongResponse[] }) => {
     return (
         <div className="bg-grayDarker rounded-xl shadow-lg shadow-black/10 border border-grayDark/20 overflow-hidden text-white">
             {/* Table Header Bar */}
-            <div className="px-6 py-4 border-b border-grayDark/15 flex justify-between items-center bg-gradient-to-r from-grayDarkest/40 to-transparent">
+            <div className="px-6 py-4 border-b border-grayDark/15 flex justify-between items-center bg-linear-to-r from-grayDarkest/40 to-transparent">
                 <div className="flex items-center gap-2.5">
                     <div className="p-1.5 rounded-lg bg-sky-500/10 border border-sky-500/15">
                         <Music2 className="w-4 h-4 text-sky-400" />
@@ -44,7 +44,7 @@ const TableSong = ({ songs }: { songs: TSongResponse[] }) => {
                 </TableHeader>
                 <TableBody>
                     {songs.map((song) => (
-                        <TableRow key={song.id} className="border-grayDark/10 hover:bg-white/[0.02] transition-colors group">
+                        <TableRow key={song.id} className="border-grayDark/10 hover:bg-white/2 transition-colors group">
                             <TableCell className="py-4 pl-6">
                                 <div className="flex items-center gap-3.5">
                                     <div className="relative size-12 rounded-lg overflow-hidden shrink-0 ring-1 ring-grayDark/10 group-hover:ring-primary/30 transition-all">
@@ -88,7 +88,7 @@ const TableSong = ({ songs }: { songs: TSongResponse[] }) => {
                                     <Link
                                         className="size-8 rounded-lg border border-grayDark/15 bg-grayDarkest/50 flex items-center justify-center text-grayDark hover:text-amber-400 hover:border-amber-400/30 hover:bg-amber-400/5 transition-all"
                                         title="Chỉnh sửa"
-                                        href={`/admin/songs/edit/${song.id}`}
+                                        href={`/admin/songs/update/${song.id}`}
                                     >
                                         <Edit className="w-3.5 h-3.5" />
                                     </Link>

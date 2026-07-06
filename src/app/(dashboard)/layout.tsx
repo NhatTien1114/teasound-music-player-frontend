@@ -3,15 +3,11 @@
 import NowPlayingBar from '@/components/layouts/NowPlayingBar'
 import SideBar from '@/components/layouts/SideBar'
 import TopBar from '@/components/layouts/TopBar'
-import AuthRedirectHandler from '@/components/auth/AuthRedirectHandler'
 import React from 'react'
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     return (
         <div>
-            {/* Post-login skeleton loading & role-based redirect */}
-            <AuthRedirectHandler />
-
             <div className="relative flex flex-col h-screen overflow-hidden bg-grayDarkest">
                 {/* Ambient glow effects */}
                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-900/15 rounded-full blur-[120px] pointer-events-none" />

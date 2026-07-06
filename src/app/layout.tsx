@@ -7,6 +7,7 @@ import { Toaster } from "sonner";
 import { extractRouterConfig } from "uploadthing/server";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { ourFileRouter } from "@/app/api/uploadthing/core";
+import AuthRedirectHandler from "@/components/auth/AuthRedirectHandler";
 
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
@@ -29,6 +30,8 @@ export default function RootLayout({
       <body
         className={`${beVNPro.variable}`}
       >
+        {/* Post-login skeleton loading & role-based redirect */}
+        <AuthRedirectHandler />
         <NextSSRPlugin
           /**
            * The `extractRouterConfig` will extract **only** the route configs

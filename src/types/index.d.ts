@@ -14,12 +14,12 @@ export type TAuthorResponse = {
 }
 
 export type TSongResponse = {
-    id?: number,
+    id?: number | undefined,
     name?: string,
     description?: string,
     thumbnailUrl?: string,
     duration?: string,
-    authorId?: number,
+    authorId?: number | undefined,
     type?: keyof TTypeSong,
     audioUrl?: string,
     videoUrl?: string,

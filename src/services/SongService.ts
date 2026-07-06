@@ -67,10 +67,44 @@ const getAllSongs = async () => {
     }
 }
 
+const updateSong = async ({ data }: { data: TSongResponse }): Promise<TApiResponse<TSongResponse>> => {
+    try {
+        const response = await axiosInstance.post("/api/songs/update", data);
+        return {
+            success: true,
+            message: "Song updated successfully",
+            data: response.data
+        };
+    } catch (error: any) {
+        return {
+            success: false,
+            message: error.response?.data?.message || "Something went wrong",
+            data: null
+        };
+    }
+}
 
+const getSongById = async ({ id }: { id: number }): Promise<TApiResponse<TSongResponse>> => {
+    try {
+        const response = await axiosInstance.get(`/api/songs/${id}`);
+        return {
+            success: true,
+            message: "Song fetched successfully",
+            data: response.data
+        };
+    } catch (error: any) {
+        return {
+            success: false,
+            message: error.response?.data?.message || "Something went wrong",
+            data: null
+        };
+    }
+}
 
 
 export const SongService = {
     createSong,
-    getAllSongs
+    getAllSongs,
+    updateSong,
+    getSongById
 }
