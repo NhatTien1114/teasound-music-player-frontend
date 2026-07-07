@@ -1,3 +1,12 @@
+import {
+    Home,
+    Music2,
+    Users,
+    MonitorPlay,
+    SlidersHorizontal,
+    LucideIcon,
+} from "lucide-react";
+
 export const commonClassNames = {
     status:
         "border border-current rounded-md font-medium px-3 py-1 text-xs whitespace-nowrap",
@@ -6,3 +15,41 @@ export const commonClassNames = {
     paginationButton:
         "size-10 rounded-md borderDarkMode bgDarkMode border flex items-center justify-center hover:border-primary transition-all hover:text-primary",
 };
+
+export const menuItems: {
+    id: string,
+    url: string,
+    title: string,
+    icon: LucideIcon
+}[] = [
+        {
+            id: 'home',
+            url: '/',
+            title: 'Trang chủ',
+            icon: Home,
+        },
+        {
+            id: 'music',
+            url: '/music',
+            title: 'Nhạc',
+            icon: Music2,
+        },
+        {
+            id: 'artists',
+            url: '/artists',
+            title: 'Nghệ sĩ',
+            icon: Users,
+        },
+        {
+            id: 'videos',
+            url: '/videos',
+            title: 'Video',
+            icon: MonitorPlay,
+        },
+        {
+            id: 'equalizer',
+            url: '/equalizer',
+            title: 'Bộ chỉnh âm',
+            icon: SlidersHorizontal,
+        },
+    ]

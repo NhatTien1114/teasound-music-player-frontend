@@ -1,74 +1,131 @@
+"use client"
 import React from 'react'
 import Image from 'next/image'
 import { TUserProfileResponse } from '@/types'
 import { Button } from "@/components/ui/button"
+import { MoreVertical, User, Key, Mail, Edit } from 'lucide-react'
 import {
-    Field,
-    FieldGroup,
-    FieldLabel,
-} from "@/components/ui/field"
+    Dialog,
+    DialogContent,
+    DialogTrigger,
+} from "@/components/ui/dialog"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { cn } from '@/lib/utils'
-import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
-import { AuthService } from '@/services/AuthService'
+import PageNotFound from '@/app/not-found'
 
-const ProfilePage = ({ user }: { user: TUserProfileResponse }) => {
-    const router = useRouter();
-
-    const handleLogout = async () => {
-        await AuthService.logout()
-        localStorage.removeItem('isLoggedIn')
-        window.dispatchEvent(new Event('auth-change'))
-        toast.success("Đã đăng xuất thành công")
-        router.push('/')
-    }
+const ProfilePage = ({ user }: { user: TUserProfileResponse | null }) => {
+    if (!user) return <PageNotFound />
     return (
         <>
-            <div className={cn("flex mb-8 mt-5", "justify-between px-2")}>
-                <div className="flex items-center">
-                    <button className="w-10 h-10 rounded-full bg-secondary/80 flex items-center justify-center hover:bg-secondary transition-colors duration-200 shadow-md shadow-secondary/20 overflow-hidden">
+            <div className="relative mt-5 rounded-lg h-60 w-full bg-gray-700/80 flex flex-row p-4 items-center">
+                <div className="flex flex-row items-center">
+                    <div className="w-40 h-40 rounded-full bg-secondary/80 flex items-center justify-center hover:bg-secondary transition-colors duration-200 shadow-md shadow-secondary/20 shrink-0 overflow-hidden">
                         {user?.avatarUrl ? (
                             <Image src={user.avatarUrl} alt="Avatar" width={40} height={40} className="object-cover w-full h-full" />
                         ) : (
-                            <span className="text-sm text-white font-medium uppercase">
-                                {user?.name ? user.name.charAt(0) : (user?.email ? user.email.charAt(0) : "U")}
+                            <span className="text-6xl text-white font-bold uppercase">
+                                {user?.name ? user.name.charAt(0) : "T"}
                             </span>
                         )}
-                    </button>
-                    <div className="ml-3 flex flex-col justify-center overflow-hidden whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-300">
-                        <span className="text-sm text-white font-medium">{user?.name || user?.email || "Người dùng"}</span>
-                        <span className="text-xs text-grayDark">
-                            {user?.role === 'ADMIN' ? 'Quản trị viên' : (user?.role ? 'Người dùng' : 'Khách')}
-                        </span>
+                    </div>
+                    <div className="flex flex-col">
+                        <p className="px-4 text-white text-sm">Profile</p>
+                        <h1 className="p-4 text-4xl font-bold text-white">{user?.name}</h1>
+                        {user?.createdAt && (
+                            <p className="px-4 text-gray-300 text-sm mt-1 font-medium">
+                                Tham gia từ: {Array.isArray(user.createdAt)
+                                    ? new Date(user.createdAt[0], user.createdAt[1] - 1, user.createdAt[2]).toLocaleDateString('vi-VN')
+                                    : new Date(user.createdAt).toLocaleDateString('vi-VN')}
+                            </p>
+                        )}
                     </div>
                 </div>
-                <Button
-                    onClick={() => handleLogout()}
-                    className="bg-red-500 text-white w-30 h-auto hover:bg-red-600 transition-colors duration-200 shadow-md shadow-red-500/20">
-                    Đăng xuất
-                </Button>
+
+                <div className="absolute top-4 right-4">
+                    <Dialog>
+                        <form>
+                            <DialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="text-white hover:bg-gray-600/50 rounded-full h-10 w-10">
+                                    <MoreVertical className="w-5 h-5" />
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-[480px] p-0 bg-[#1C1C24] border-gray-800 text-white overflow-hidden border-none shadow-2xl rounded-2xl">
+                                <div className="flex flex-col items-center justify-center pt-10 pb-6 relative">
+                                    <div className="w-20 h-20 rounded-full bg-purple-600 flex items-center justify-center shadow-lg shadow-purple-900/50 overflow-hidden">
+                                        {user?.avatarUrl ? (
+                                            <Image src={user.avatarUrl} alt="Avatar" width={80} height={80} className="object-cover w-full h-full" />
+                                        ) : (
+                                            <span className="text-3xl text-white font-bold uppercase">
+                                                {user?.name ? user.name.charAt(0) : "T"}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <h2 className="text-xl font-bold mt-4">{user?.name}</h2>
+                                    <span className="text-xs bg-gray-800/80 text-gray-400 px-3 py-1 rounded-full mt-1 border border-gray-700">
+                                        {user?.role}
+                                    </span>
+                                </div>
+
+                                <Tabs defaultValue="info" className="w-full flex flex-col h-full">
+                                    <div className="px-6 mb-4">
+                                        <TabsList className="flex w-full bg-grayDarker rounded-lg p-1 h-12">
+                                            <TabsTrigger
+                                                value="info"
+                                                className="flex-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-400 rounded-md transition-all h-full font-medium"
+                                            >
+                                                <User className="w-4 h-4 mr-2" /> Thông tin
+                                            </TabsTrigger>
+                                            <TabsTrigger
+                                                value="password"
+                                                className="flex-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-400 rounded-md transition-all h-full font-medium"
+                                            >
+                                                <Key className="w-4 h-4 mr-2" /> Đổi mật khẩu
+                                            </TabsTrigger>
+                                        </TabsList>
+                                    </div>
+
+                                    <TabsContent value="info" className="px-6 pb-6 space-y-4 focus-visible:outline-none focus-visible:ring-0">
+                                        <div className="space-y-4">
+                                            <div className="space-y-2">
+                                                <Label className="text-gray-400 text-sm flex items-center gap-2"><User className="w-4 h-4" /> Tên người dùng</Label>
+                                                <Input className="bg-grayDarker border-transparent focus-visible:ring-1 focus-visible:ring-primary text-white h-12 rounded-lg" readOnly value={user?.name || ''} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-gray-400 text-sm flex items-center gap-2"><Mail className="w-4 h-4" /> Email</Label>
+                                                <Input className="bg-grayDarker border-transparent focus-visible:ring-1 focus-visible:ring-primary text-white h-12 rounded-lg" readOnly value={user?.email || ''} />
+                                            </div>
+                                        </div>
+                                        <Button className="w-full bg-grayDarker hover:bg-gray-700 text-white border border-grayDarker h-12 rounded-lg mt-6 font-medium">
+                                            <Edit className="w-4 h-4 mr-2" /> Chỉnh sửa thông tin
+                                        </Button>
+                                    </TabsContent>
+
+                                    <TabsContent value="password" className="px-6 pb-6 space-y-4 focus-visible:outline-none focus-visible:ring-0">
+                                        <div className="space-y-4">
+                                            <div className="space-y-2">
+                                                <Label className="text-gray-400 text-sm">Mật khẩu hiện tại</Label>
+                                                <Input type="password" autoComplete="new-password" placeholder="••••••••" className="bg-grayDarker border-transparent focus-visible:ring-1 focus-visible:ring-primary text-white h-12 rounded-lg" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-gray-400 text-sm">Mật khẩu mới</Label>
+                                                <Input type="password" placeholder="••••••••" className="bg-grayDarker border-transparent focus-visible:ring-1 focus-visible:ring-primary text-white h-12 rounded-lg" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-gray-400 text-sm">Xác nhận mật khẩu mới</Label>
+                                                <Input type="password" placeholder="••••••••" className="bg-grayDarker border-transparent focus-visible:ring-1 focus-visible:ring-primary text-white h-12 rounded-lg" />
+                                            </div>
+                                        </div>
+                                        <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold h-12 rounded-lg mt-6">
+                                            <Key className="w-4 h-4 mr-2" /> Cập nhật mật khẩu
+                                        </Button>
+                                    </TabsContent>
+                                </Tabs>
+                            </DialogContent>
+                        </form>
+                    </Dialog>
+                </div>
             </div>
-            <FieldGroup>
-                <Field>
-                    <FieldLabel htmlFor="fieldgroup-name">Tên</FieldLabel>
-                    <Input id="fieldgroup-name" placeholder="Jordan Lee" defaultValue={user?.name} />
-                </Field>
-                <Field>
-                    <FieldLabel htmlFor="fieldgroup-email">Email</FieldLabel>
-                    <Input
-                        id="fieldgroup-email"
-                        type="email"
-                        placeholder="name@example.com"
-                        defaultValue={user?.email}
-                        readOnly
-                        className='cursor-not-allowed bg-grayDark/30'
-                    />
-                </Field>
-                <Field orientation="horizontal">
-                    <Button type="submit">Cập nhật</Button>
-                </Field>
-            </FieldGroup>
         </>
     )
 }

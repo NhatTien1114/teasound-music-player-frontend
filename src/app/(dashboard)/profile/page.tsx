@@ -7,17 +7,12 @@ import React, { useEffect, useState } from 'react'
 
 const Page = () => {
     const [userData, setUserData] = useState<TUserProfileResponse | null>(null);
-    const fetchUser = async () => {
-        try {
+    useEffect(() => {
+        const fetchUserData = async () => {
             const user = await UserService.getCurrentUser();
             setUserData(user);
-        } catch (error) {
-            console.log(error);
         }
-    }
-
-    useEffect(() => {
-        fetchUser();
+        fetchUserData();
     }, []);
 
     return (

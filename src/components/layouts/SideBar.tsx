@@ -1,11 +1,6 @@
 "use client";
 
 import {
-  Home,
-  Music2,
-  Users,
-  MonitorPlay,
-  SlidersHorizontal,
   ChevronsRight,
   ChevronsLeft,
   User,
@@ -15,15 +10,9 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { UserService } from "@/services/UserService";
-import { revalidatePath } from "next/cache";
-
-const sidebarItems = [
-  { id: "home", icon: Home, label: "Home" },
-  { id: "music", icon: Music2, label: "Music" },
-  { id: "artists", icon: Users, label: "Artists" },
-  { id: "videos", icon: MonitorPlay, label: "Videos" },
-  { id: "equalizer", icon: SlidersHorizontal, label: "Equalizer" },
-];
+import { AuthService } from "@/services/AuthService";
+import { toast } from "sonner";
+import { menuItems } from "@/constants";
 
 export default function SideBar() {
   const router = useRouter();
@@ -61,7 +50,7 @@ export default function SideBar() {
   return (
     <aside
       className={cn(
-        "flex flex-col shrink-0 transition-all duration-300 ease-in-out border-r border-white/5",
+        "relative flex flex-col shrink-0 transition-all duration-300 ease-in-out border-r border-white/5",
         isCollapsed ? "w-[72px] items-center" : "w-64 px-4 items-stretch"
       )}
     >
@@ -142,14 +131,17 @@ export default function SideBar() {
 
       {/* Navigation Items */}
       <div className="flex flex-col gap-2">
-        {sidebarItems.map((item) => {
+        {menuItems.map((item) => {
           const isActive = activeItem === item.id;
           const Icon = item.icon;
 
           return (
             <button
               key={item.id}
-              onClick={() => setActiveItem(item.id)}
+              onClick={() => {
+                setActiveItem(item.id)
+                router.push(item.url)
+              }}
               className={cn(
                 "relative flex items-center h-12 rounded-xl transition-all duration-300 group overflow-hidden",
                 isCollapsed ? "justify-center w-12 mx-auto" : "justify-start px-4 w-full",
@@ -157,7 +149,7 @@ export default function SideBar() {
                   ? "bg-primary text-white shadow-lg shadow-primary/30"
                   : "text-grayDark hover:text-white hover:bg-white/5"
               )}
-              title={isCollapsed ? item.label : undefined}
+              title={isCollapsed ? item.title : undefined}
             >
               <Icon
                 className="w-5 h-5 shrink-0"
@@ -170,11 +162,31 @@ export default function SideBar() {
                   isCollapsed ? "opacity-0 w-0 translate-x-4 hidden" : "opacity-100 ml-4 translate-x-0"
                 )}
               >
-                {item.label}
+                {item.title}
               </span>
             </button>
           );
         })}
+      </div>
+
+      <div className="absolute bottom-4 right-0 left-0 p-4">
+        {!isCollapsed &&
+          <button
+            onClick={() => {
+              if (userData) {
+                AuthService.logout();
+                localStorage.removeItem('isLoggedIn');
+                window.dispatchEvent(new Event('auth-change'));
+                toast.success("Đã đăng xuất thành công");
+                router.push('/');
+              } else {
+                router.push('/sign-in');
+              }
+            }}
+            className={cn(userData ? "bg-red-500" : "bg-primary", "w-full h-12 rounded-xl text-white font-bold transition-all duration-300 hover:scale-105")}>
+            {userData ? "Đăng xuất" : "Đăng nhập"}
+          </button>
+        }
       </div>
     </aside>
   );

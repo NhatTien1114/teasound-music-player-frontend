@@ -4,6 +4,7 @@ export type TUserProfileResponse = {
     email?: string;
     avatarUrl?: string;
     role?: string;
+    createdAt?: string | number[] | Date;
 }
 
 export type TAuthorResponse = {
