@@ -53,3 +53,66 @@ export const menuItems: {
             icon: SlidersHorizontal,
         },
     ]
+
+export const typeOfMusic: {
+    value: string,
+    label: string,
+    className?: string
+}[] = [
+        {
+            "value": "POP",
+            "label": "Pop",
+            "className": "text-blue-500"
+        }, {
+            "value": "ROCK",
+            "label": "Rock",
+            "className": "text-red-500"
+        }, {
+            "value": "HIPHOP",
+            "label": "Hip Hop",
+            "className": "text-yellow-500"
+        }, {
+            "value": "RNB",
+            "label": "R&B",
+            "className": "text-pink-500"
+        }, {
+            "value": "EDM",
+            "label": "EDM",
+            "className": "text-purple-500"
+        }, {
+            "value": "JAZZ",
+            "label": "Jazz",
+            "className": "text-cyan-500"
+        }, {
+            "value": "CLASSICAL",
+            "label": "Classical",
+            "className": "text-orange-500"
+        }, {
+            "value": "LOFI",
+            "label": "Lofi",
+            "className": "text-amber-500"
+        }, {
+            "value": "KPOP",
+            "label": "K-Pop",
+            "className": "text-rose-500"
+        }, {
+            "value": "VPOP",
+            "label": "V-Pop",
+            "className": "text-fuchsia-500"
+        }, {
+            "value": "ACOUSTIC",
+            "label": "Acoustic",
+            "className": "text-green-500"
+        }, {
+            "value": "INDIE",
+            "label": "Indie",
+            "className": "text-lime-500"
+        }, {
+            "value": "REMIX",
+            "label": "Remix",
+            "className": "text-indigo-500"
+        }, {
+            "value": "OTHER",
+            "label": "Other",
+            "className": "text-slate-500"
+        }]

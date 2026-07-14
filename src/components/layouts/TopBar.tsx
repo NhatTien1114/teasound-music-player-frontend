@@ -11,10 +11,14 @@ export default function TopBar() {
 
       {/* Navigation arrows */}
       <div className="absolute left-5 flex items-center gap-1 shrink-0">
-        <button className="p-2 rounded-full hover:bg-white/5 text-white/70 hover:text-white transition-colors duration-200">
+        <button
+          onClick={() => router.back()}
+          className="p-2 rounded-full hover:bg-white/5 text-white/70 hover:text-white transition-colors duration-200">
           <ChevronLeft className="w-5 h-5" />
         </button>
-        <button className="p-2 rounded-full hover:bg-white/5 text-white/70 hover:text-white transition-colors duration-200">
+        <button
+          onClick={() => router.forward()}
+          className="p-2 rounded-full hover:bg-white/5 text-white/70 hover:text-white transition-colors duration-200">
           <ChevronRight className="w-5 h-5" />
         </button>
       </div>

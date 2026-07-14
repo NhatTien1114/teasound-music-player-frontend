@@ -1,4 +1,4 @@
-import { TSongResponse } from "@/types";
+import { TAllSongs, TPaginatedResponse, TSongResponse } from "@/types";
 import axios from "axios";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -50,7 +50,7 @@ const createSong = async ({ data }: { data: TSongResponse }): Promise<TApiRespon
     }
 }
 
-const getAllSongs = async () => {
+const getAllSongs = async (params: TAllSongs): Promise<TApiResponse<TSongResponse[]>> => {
     try {
         const response = await axiosInstance.get("/api/songs");
         return {
@@ -101,10 +101,37 @@ const getSongById = async ({ id }: { id: number }): Promise<TApiResponse<TSongRe
     }
 }
 
+const getAllSongsPaginated = async (params: TAllSongs): Promise<TApiResponse<TPaginatedResponse<TSongResponse>>> => {
+    try {
+        const { page = 1, limit = 10, search = "", type } = params;
+        const queryParams = new URLSearchParams({
+            page: page.toString(),
+            limit: limit.toString(),
+            search,
+        });
+        if (type) {
+            queryParams.set("type", type);
+        }
+        const response = await axiosInstance.get(`/api/songs/paginated?${queryParams.toString()}`);
+        return {
+            success: true,
+            message: "Songs fetched successfully",
+            data: response.data
+        };
+    } catch (error: any) {
+        return {
+            success: false,
+            message: error.response?.data?.message || "Something went wrong",
+            data: null
+        };
+    }
+}
+
 
 export const SongService = {
     createSong,
     getAllSongs,
     updateSong,
-    getSongById
+    getSongById,
+    getAllSongsPaginated
 }

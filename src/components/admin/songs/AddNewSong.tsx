@@ -31,18 +31,13 @@ import { UploadButton } from "@/utils/uploadthing";
 import Image from "next/image";
 import { SongService } from "@/services/SongService";
 import { toast } from "sonner";
+import { typeOfMusic } from "@/constants";
 
-
-const SONG_TYPES = [
-    "POP", "ROCK", "HIPHOP", "RNB", "EDM", "JAZZ",
-    "CLASSICAL", "LOFI", "KPOP", "VPOP", "ACOUSTIC",
-    "INDIE", "REMIX", "OTHER"
-] as const;
 
 const formSchema = z.object({
     name: z.string().min(2, { message: "Tên bài hát phải có ít nhất 2 ký tự" }),
     description: z.string().optional(),
-    type: z.enum(SONG_TYPES, {
+    type: z.enum(typeOfMusic.map(item => item.label), {
         error: "Vui lòng chọn thể loại",
     }),
     author: z.string().min(1, { message: "Vui lòng chọn nghệ sĩ" }),
@@ -171,10 +166,12 @@ function AddNewSong() {
                                             </SelectTrigger>
                                         </FormControl>
 
-                                        <SelectContent>
-                                            {SONG_TYPES.map((type) => (
-                                                <SelectItem key={type} value={type}>
-                                                    {type}
+                                        <SelectContent
+                                            className="bg-grayDarker border-grayDark/20 text-white placeholder:text-grayDark/50 focus-visible:ring-primary focus-visible:border-primary/50 transition-all"
+                                        >
+                                            {typeOfMusic.map((type) => (
+                                                <SelectItem key={type.value} value={type.value}>
+                                                    {type.label}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -201,9 +198,12 @@ function AddNewSong() {
                                             </SelectTrigger>
                                         </FormControl>
 
-                                        <SelectContent>
+                                        <SelectContent
+                                            className="bg-grayDarker border-grayDark/20 text-white placeholder:text-grayDark/50 focus-visible:ring-primary focus-visible:border-primary/50 transition-all"
+                                        >
                                             {authors.map((author) => (
-                                                <SelectItem key={author.id} value={author.id?.toString() || ""}>
+                                                <SelectItem
+                                                    key={author.id} value={author.id?.toString() || ""}>
                                                     {author.name}
                                                 </SelectItem>
                                             ))}

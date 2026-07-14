@@ -1,4 +1,4 @@
-import { TAuthorResponse } from "@/types";
+import { TAllAuthors, TAuthorResponse, TPaginatedResponse } from "@/types";
 import axios from "axios";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -67,7 +67,31 @@ const getAllAuthors = async (): Promise<TApiResponse<TAuthorResponse[]>> => {
     }
 }
 
+const getAllAuthorsPaginated = async (params: TAllAuthors): Promise<TApiResponse<TPaginatedResponse<TAuthorResponse>>> => {
+    try {
+        const { page = 1, limit = 5, search = "" } = params;
+        const queryParams = new URLSearchParams({
+            page: page.toString(),
+            limit: limit.toString(),
+            search,
+        });
+        const response = await axiosInstance.get(`/api/authors/paginated?${queryParams.toString()}`);
+        return {
+            success: true,
+            message: "Authors fetched successfully",
+            data: response.data
+        };
+    } catch (error: any) {
+        return {
+            success: false,
+            message: error.response?.data?.message || "Something went wrong",
+            data: null
+        };
+    }
+}
+
 export const AuthorService = {
     createAuthor,
-    getAllAuthors
+    getAllAuthors,
+    getAllAuthorsPaginated,
 }
