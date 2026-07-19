@@ -6,7 +6,7 @@ interface SearchInputProps {
 }
 
 export default function SearchInput({
-  placeholder = "Search for artists, songs and ...",
+  placeholder = "Tìm tên nghệ sĩ, bài hát và ...",
   className = "",
 }: SearchInputProps) {
   return (

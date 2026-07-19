@@ -27,7 +27,7 @@ export type TSongResponse = {
     thumbnailUrl?: string,
     duration?: string,
     authorId?: number | undefined,
-    type?: keyof TTypeSong,
+    type?: TTypeSong,
     audioUrl?: string,
     videoUrl?: string,
 }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { TAllSongs, TPaginatedResponse, TSongResponse } from "@/types";
 import axios from "axios";
 
@@ -50,7 +51,7 @@ const createSong = async ({ data }: { data: TSongResponse }): Promise<TApiRespon
     }
 }
 
-const getAllSongs = async (params: TAllSongs): Promise<TApiResponse<TSongResponse[]>> => {
+const getAllSongs = async (): Promise<TApiResponse<TSongResponse[]>> => {
     try {
         const response = await axiosInstance.get("/api/songs");
         return {

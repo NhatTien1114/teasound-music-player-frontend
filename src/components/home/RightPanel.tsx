@@ -18,7 +18,7 @@ export default function RightPanel() {
   return (
     <aside className="w-64 shrink-0 space-y-6">
       {/* Upgrade Card */}
-      <div className="relative rounded-2xl overflow-hidden bg-linear-to-br from-pink-500 via-purple-500 to-blue-500 p-6 min-h-[200px] flex flex-col justify-between">
+      <div className="relative rounded-2xl overflow-hidden bg-primary p-6 min-h-[200px] flex flex-col justify-between">
         {/* Decorative blurs */}
         <div className="absolute top-4 right-4 w-20 h-20 rounded-full bg-pink-400/30 blur-xl" />
         <div className="absolute bottom-6 right-10 w-14 h-14 rounded-full bg-blue-400/30 blur-lg" />
@@ -26,9 +26,9 @@ export default function RightPanel() {
 
         <div className="relative z-10">
           <h3 className="text-xl font-bold text-white leading-tight">
-            Upgrade
+            Nâng cấp
             <br />
-            your account
+            tài khoản của bạn
           </h3>
         </div>
 
@@ -41,7 +41,7 @@ export default function RightPanel() {
 
       {/* Fav Artists */}
       <div>
-        <h3 className="text-base font-bold text-white mb-3">Fav Artists</h3>
+        <h3 className="text-base font-bold text-white mb-3">Nghệ sĩ yêu thích</h3>
         <div className="space-y-1">
           {favArtists.map((artist) => (
             <FavArtistItem key={artist.name} {...artist} />

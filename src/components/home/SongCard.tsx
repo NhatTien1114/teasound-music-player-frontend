@@ -1,3 +1,4 @@
+import { usePlayer } from "@/hooks/usePlayer";
 import { TSongResponse } from "@/types";
 import { Music, Play, Plus, Heart } from "lucide-react";
 
@@ -19,8 +20,9 @@ const typeColors: Record<string, string> = {
 };
 
 export default function SongCard({ song }: { song: TSongResponse }) {
+  const { playSong } = usePlayer();
   return (
-    <div className="group cursor-pointer shrink-0 w-[170px]">
+    <div onClick={() => playSong(song)} className="group cursor-pointer shrink-0 w-[170px]">
       {/* Thumbnail */}
       <div className="relative aspect-square rounded-xl overflow-hidden bg-grayDarker shadow-md">
         {song.thumbnailUrl ? (

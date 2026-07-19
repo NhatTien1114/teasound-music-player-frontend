@@ -65,9 +65,9 @@ export default function SideBar() {
               <Image
                 src="/TeaSound.png"
                 alt="Logo"
-                width={200}
+                width={150}
                 height={50}
-                className="w-40 h-auto object-contain drop-shadow-md"
+                className="w-35 h-auto object-contain drop-shadow-md"
               />
             </button>
 
