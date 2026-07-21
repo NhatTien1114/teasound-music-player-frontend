@@ -1,44 +1,63 @@
-import SongRow from "./SongRow";
+"use client"
 
-const recentSongs = [
-  {
-    title: "Starboy",
-    artist: "The Weeknd",
-    duration: "3:40",
-    rating: 3,
-    avatarGradient: "from-red-500 to-orange-600",
-  },
-  {
-    title: "Not today",
-    artist: "Imagine Dragons",
-    duration: "4:18",
-    rating: 5,
-    avatarGradient: "from-blue-500 to-cyan-500",
-  },
-  {
-    title: "Chandelier",
-    artist: "Sia",
-    duration: "3:36",
-    rating: 4,
-    avatarGradient: "from-pink-500 to-purple-500",
-  },
-  {
-    title: "Shape of You",
-    artist: "Ed Sheeran",
-    duration: "3:54",
-    rating: 4,
-    avatarGradient: "from-green-500 to-teal-500",
-  },
-];
+import SongRow from "./SongRow";
+import { HistoryService, HistoryResponse } from "@/services/HistoryService";
+import { useEffect, useState } from "react";
+import useUser from "@/hooks/useUser";
 
 export default function RecentlyPlayedSection() {
+  const { user } = useUser();
+  const [history, setHistory] = useState<HistoryResponse[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      if (!user?.id) return;
+      try {
+        setIsLoading(true);
+        const historyData = await HistoryService.getHistory(user.id);
+        // Chỉ lấy tối đa 4 bài nhạc nghe gần nhất
+        setHistory(historyData.slice(0, 4));
+      } catch (error) {
+        console.error("Lỗi khi tải lịch sử nghe nhạc:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchHistory();
+  }, [user?.id]);
+
+  useEffect(() => {
+    const handleHistoryUpdate = (event: Event) => {
+      const customEvent = event as CustomEvent<HistoryResponse>;
+      const newItem = customEvent.detail;
+      if (!newItem || !newItem.songId) return;
+
+      setHistory((prevHistory) => {
+        // Loại bỏ bài hát đã có trong danh sách (nếu trùng songId)
+        const filtered = prevHistory.filter((item) => item.songId !== newItem.songId);
+        // Đưa bài vừa nghe lên đầu danh sách và chỉ giữ tối đa 4 bài
+        return [newItem, ...filtered].slice(0, 4);
+      });
+    };
+
+    window.addEventListener("history-updated", handleHistoryUpdate);
+    return () => {
+      window.removeEventListener("history-updated", handleHistoryUpdate);
+    };
+  }, []);
+
   return (
     <section>
       <h2 className="text-xl font-bold text-white mb-5">Recently played</h2>
       <div className="grid grid-cols-2 gap-1">
-        {recentSongs.map((song) => (
-          <SongRow key={song.title} {...song} />
-        ))}
+        {isLoading && user?.id
+          ? Array.from({ length: 4 }).map((_, index) => (
+            <SongRow key={index} song={{} as HistoryResponse} isLoading={true} />
+          ))
+          : history.map((song) => (
+            <SongRow key={song.id} song={song} isLoading={false} />
+          ))}
       </div>
     </section>
   );

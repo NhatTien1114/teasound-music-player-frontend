@@ -1,4 +1,5 @@
 export type TUserProfileResponse = {
+    id?: number;
     authenticated: boolean;
     name?: string;
     email?: string;
