@@ -1,3 +1,4 @@
+import { TCreateHistoryRequest, THistoryResponse } from "@/types";
 import axios from "axios";
 
 const BACK_END_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -7,25 +8,8 @@ const axiosInstance = axios.create({
     withCredentials: true
 });
 
-export interface CreateHistoryRequest {
-    userId: number;
-    songId: number;
-}
-
-export interface HistoryResponse {
-    id: number;
-    songId: number;
-    title: string;
-    duration: string;
-    thumbnailUrl: string;
-    audioUrl: string;
-    authorName: string;
-    userId: number;
-    playedAt: string;
-}
-
 export const HistoryService = {
-    getHistory: async (userId?: number): Promise<HistoryResponse[]> => {
+    getHistory: async (userId?: number): Promise<THistoryResponse[]> => {
         try {
             const response = await axiosInstance.get(`/api/history?userId=${userId}`);
             return response.data;
@@ -34,7 +18,7 @@ export const HistoryService = {
             throw error;
         }
     },
-    createHistory: async (request: CreateHistoryRequest): Promise<HistoryResponse> => {
+    createHistory: async (request: TCreateHistoryRequest): Promise<THistoryResponse> => {
         try {
             const response = await axiosInstance.post("/api/history", request);
             return response.data;

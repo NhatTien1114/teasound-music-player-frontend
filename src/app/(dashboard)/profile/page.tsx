@@ -1,24 +1,13 @@
-"use client"
 import ProfilePage from '@/components/home/ProfilePage'
-import { UserService } from '@/services/UserService'
-import { TUserProfileResponse } from '@/types'
-import React, { useEffect, useState } from 'react'
-
+import useUser from '@/hooks/useUser'
 
 const Page = () => {
-    const [userData, setUserData] = useState<TUserProfileResponse | null>(null);
-    useEffect(() => {
-        const fetchUserData = async () => {
-            const user = await UserService.getCurrentUser();
-            setUserData(user);
-        }
-        fetchUserData();
-    }, []);
+    const { user } = useUser();
 
     return (
         <>
             <ProfilePage
-                user={userData!}
+                user={user!}
             />
         </>
     )

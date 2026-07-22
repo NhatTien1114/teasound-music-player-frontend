@@ -50,3 +50,29 @@ export type TPaginatedResponse<T> = {
     last: boolean,
     empty: boolean,
 }
+
+export type THistoryResponse = {
+    id: number;
+    songId: number;
+    title: string;
+    duration: string;
+    thumbnailUrl: string;
+    audioUrl: string;
+    authorName: string;
+    userId: number;
+    playedAt: string;
+}
+
+export type TCreateHistoryRequest = {
+    userId: number;
+    songId: number;
+}
+
+export type TPlayerContext = {
+    currentSong: TSongResponse | null;
+    isPlaying: boolean;
+    audioRef: React.RefObject<HTMLAudioElement>;
+    playSong: (song: TSongResponse) => void;
+    togglePlay: () => void;
+    seek: (time: number) => void;
+};

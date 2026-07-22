@@ -1,20 +1,11 @@
 "use client"
 
 import { HistoryService } from '@/services/HistoryService';
-import { TSongResponse } from '@/types';
+import { TPlayerContext, TSongResponse } from '@/types';
 import React, { createContext, useContext, useRef, useState } from 'react';
 import useUser from './useUser';
 
-type PlayerContextType = {
-    currentSong: TSongResponse | null;
-    isPlaying: boolean;
-    audioRef: React.RefObject<HTMLAudioElement>;
-    playSong: (song: TSongResponse) => void;
-    togglePlay: () => void;
-    seek: (time: number) => void;
-};
-
-const PlayerContext = createContext<PlayerContextType | null>(null);
+const PlayerContext = createContext<TPlayerContext | null>(null);
 
 export function PlayerProvider({ children }: { children: React.ReactNode }) {
     const [currentSong, setCurrentSong] = useState<TSongResponse | null>(null);
