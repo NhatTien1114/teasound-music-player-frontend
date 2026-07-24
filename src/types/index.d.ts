@@ -76,3 +76,21 @@ export type TPlayerContext = {
     togglePlay: () => void;
     seek: (time: number) => void;
 };
+
+export type TPlaylistResponse = {
+    id?: number;
+    name?: string;
+    thumbnailUrl?: string;
+    coverImage?: string;
+    isPublic?: boolean;
+    songs?: TSongResponse[];
+    user?: TUserProfileResponse;
+    userId?: number;
+}
+
+export type TCreatePlaylistRequest = {
+    name: string;
+    thumbnailUrl?: string;
+    songs?: TSongResponse[];
+}
+

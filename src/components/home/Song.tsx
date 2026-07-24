@@ -1,6 +1,6 @@
 import { Star } from "lucide-react";
 
-interface PlaylistCardProps {
+interface SongProps {
   title: string;
   songCount: number;
   rating: number;
@@ -8,13 +8,13 @@ interface PlaylistCardProps {
   icon?: React.ReactNode;
 }
 
-export default function PlaylistCard({
+export default function Song({
   title,
   songCount,
   rating,
   gradient,
   icon,
-}: PlaylistCardProps) {
+}: SongProps) {
   return (
     <div className="group cursor-pointer">
       <div

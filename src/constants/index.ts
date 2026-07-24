@@ -29,9 +29,9 @@ export const menuItems: {
             icon: Home,
         },
         {
-            id: 'music',
-            url: '/music',
-            title: 'Nhạc',
+            id: 'playlist',
+            url: '/playlist',
+            title: 'Danh sách phát',
             icon: Music2,
         },
         {

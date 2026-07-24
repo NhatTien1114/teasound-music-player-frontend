@@ -13,10 +13,11 @@ import { UserService } from "@/services/UserService";
 import { AuthService } from "@/services/AuthService";
 import { toast } from "sonner";
 import { menuItems } from "@/constants";
+import useUser from "@/hooks/useUser";
 
 export default function SideBar() {
   const router = useRouter();
-  const [activeItem, setActiveItem] = useState("home");
+  const [activeItem, setActiveItem] = useState("");
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userData, setUserData] = useState<{ username?: string, avatar?: string, plan?: string } | null>(null);
@@ -46,6 +47,13 @@ export default function SideBar() {
     window.addEventListener("auth-change", checkAuth);
     return () => window.removeEventListener("auth-change", checkAuth);
   }, []);
+
+  useEffect(() => {
+    const menuItem = menuItems.find((item) => item.url === window.location.pathname)
+    if (menuItem) {
+      setActiveItem(menuItem.id)
+    }
+  }, [])
 
   return (
     <aside

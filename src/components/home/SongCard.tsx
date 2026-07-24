@@ -1,5 +1,5 @@
 import { usePlayer } from "@/hooks/usePlayer";
-import { TSongResponse } from "@/types";
+import { TPlaylistResponse, TSongResponse } from "@/types";
 import { Music, Play, Plus, Heart } from "lucide-react";
 
 const typeColors: Record<string, string> = {
@@ -19,7 +19,7 @@ const typeColors: Record<string, string> = {
   OTHER: "bg-gray-500",
 };
 
-export default function SongCard({ song }: { song: TSongResponse }) {
+export default function SongCard({ song, onAddToPlaylist }: { song: TSongResponse, onAddToPlaylist?: (playlist: TPlaylistResponse) => void }) {
   const { playSong } = usePlayer();
   return (
     <div onClick={() => playSong(song)} className="group cursor-pointer shrink-0 w-[170px]">
@@ -43,6 +43,10 @@ export default function SongCard({ song }: { song: TSongResponse }) {
           {/* Action buttons */}
           <div className="absolute top-2.5 right-2.5 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-1 group-hover:translate-y-0">
             <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onAddToPlaylist) onAddToPlaylist(song as any);
+              }}
               className="w-7 h-7 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors"
               aria-label="Add to playlist"
             >

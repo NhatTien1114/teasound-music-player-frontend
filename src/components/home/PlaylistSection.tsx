@@ -3,28 +3,33 @@ import { TSongResponse } from "@/types";
 import SongCard from "./SongCard";
 import ScrollableSection from "./ScrollableSection";
 import { useEffect, useState } from "react";
-import { SongService } from "@/services/SongService";
+import { TPlaylistResponse } from "@/types";
+import { PlaylistService } from "@/services/PlaylistService";
+import useUser from "@/hooks/useUser";
+import PlaylistCard from "../playlist/PlaylistCard";
 
 export default function PlaylistSection() {
-  const [songs, setSongs] = useState<TSongResponse[]>([]);
+    const [playlists, setPlaylists] = useState<TPlaylistResponse[]>([]);
+    const { user } = useUser();
 
-  useEffect(() => {
-    const fetchSongs = async () => {
-      const response = await SongService.getAllSongs();
-      if (response.success) {
-        setSongs(response.data || []);
-      }
-    };
-    fetchSongs();
-  }, []);
+    useEffect(() => {
+        const fetchPlaylists = async () => {
+            if (!user?.id) return;
+            const response = await PlaylistService.getAllPlaylists(user.id);
+            if (response.success) {
+                setPlaylists(response.data || []);
+            }
+        };
+        fetchPlaylists();
+    }, [user]);
 
-  if (songs.length === 0) return null;
+    if (playlists.length === 0) return null;
 
-  return (
-    <ScrollableSection title="Dành cho bạn">
-      {songs.map((song) => (
-        <SongCard key={song.id} song={song} />
-      ))}
-    </ScrollableSection>
-  );
+    return (
+        <ScrollableSection title="Playlist">
+            {playlists && playlists.map((playlist) => (
+                <PlaylistCard key={playlist.id} playlist={playlist} />
+            ))}
+        </ScrollableSection>
+    );
 }

@@ -1,13 +1,14 @@
 "use client"
 
 import SongRow from "./SongRow";
-import { HistoryService, HistoryResponse } from "@/services/HistoryService";
 import { useEffect, useState } from "react";
 import useUser from "@/hooks/useUser";
+import { THistoryResponse } from "@/types";
+import { HistoryService } from "@/services/HistoryService";
 
 export default function RecentlyPlayedSection() {
   const { user } = useUser();
-  const [history, setHistory] = useState<HistoryResponse[]>([]);
+  const [history, setHistory] = useState<THistoryResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -29,7 +30,7 @@ export default function RecentlyPlayedSection() {
 
   useEffect(() => {
     const handleHistoryUpdate = (event: Event) => {
-      const customEvent = event as CustomEvent<HistoryResponse>;
+      const customEvent = event as CustomEvent<THistoryResponse>;
       const newItem = customEvent.detail;
       if (!newItem || !newItem.songId) return;
 
@@ -53,7 +54,7 @@ export default function RecentlyPlayedSection() {
       <div className="grid grid-cols-2 gap-1">
         {isLoading && user?.id
           ? Array.from({ length: 4 }).map((_, index) => (
-            <SongRow key={index} song={{} as HistoryResponse} isLoading={true} />
+            <SongRow key={index} song={{} as THistoryResponse} isLoading={true} />
           ))
           : history.map((song) => (
             <SongRow key={song.id} song={song} isLoading={false} />
