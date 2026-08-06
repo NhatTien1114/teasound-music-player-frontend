@@ -1,12 +1,5 @@
 import { TCreateHistoryRequest, THistoryResponse } from "@/types";
-import axios from "axios";
-
-const BACK_END_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-
-const axiosInstance = axios.create({
-    baseURL: BACK_END_URL,
-    withCredentials: true
-});
+import axiosInstance from "@/lib/axiosInstance";
 
 export const HistoryService = {
     getHistory: async (userId?: number): Promise<THistoryResponse[]> => {

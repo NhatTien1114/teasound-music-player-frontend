@@ -1,19 +1,62 @@
-import axios from "axios";
+import axiosInstance from "@/lib/axiosInstance";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+export interface LoginRequestData {
+    email?: string;
+    password?: string;
+}
 
-const axiosInstance = axios.create({
-    baseURL: BACKEND_URL,
-    withCredentials: true,
-});
+export interface AuthResponseData {
+    token: string;
+    id: number;
+    email: string;
+    name: string;
+    avatarUrl?: string;
+    role: string;
+}
 
 export const AuthService = {
+    login: async (data: LoginRequestData): Promise<AuthResponseData> => {
+        const response = await axiosInstance.post<AuthResponseData>("/api/auth/login", data);
+        if (response.data?.token) {
+            localStorage.setItem("token", response.data.token);
+        }
+        return response.data;
+    },
+
+    register: async (data: LoginRequestData): Promise<AuthResponseData> => {
+        const response = await axiosInstance.post<AuthResponseData>("/api/auth/register", data);
+        if (response.data?.token) {
+            localStorage.setItem("token", response.data.token);
+        }
+        return response.data;
+    },
+
+    exchangeOAuth2Token: async (): Promise<AuthResponseData> => {
+        const response = await axiosInstance.post<AuthResponseData>(
+            "/api/auth/token-exchange",
+            {},
+            { withCredentials: true }
+        );
+        if (response.data?.token) {
+            localStorage.setItem("token", response.data.token);
+        }
+        return response.data;
+    },
+
     logout: async (): Promise<void> => {
         try {
             await axiosInstance.post("/api/auth/logout");
         } catch (error) {
-            console.error('Lỗi khi đăng xuất:', error);
-            throw error;
+            console.error("Lỗi khi đăng xuất ở backend:", error);
+        } finally {
+            localStorage.removeItem("token");
         }
+    },
+
+    getToken: (): string | null => {
+        if (typeof window !== "undefined") {
+            return localStorage.getItem("token");
+        }
+        return null;
     }
-}
+};

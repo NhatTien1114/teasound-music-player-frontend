@@ -9,14 +9,18 @@ import IconUser from '@/components/icons/IconUser'
 import IconLock from '@/components/icons/IconLock'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { FaFacebook, FaGoogle } from 'react-icons/fa';
+import { AuthService } from '@/services/AuthService';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 const SignInContent = () => {
     const [isLoading, setIsLoading] = useState(false);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const searchParams = useSearchParams();
+    const router = useRouter();
 
     useEffect(() => {
         const registered = searchParams.get('registered');
@@ -27,23 +31,36 @@ const SignInContent = () => {
             window.history.replaceState({}, '', window.location.pathname);
         }
 
-        if (error === 'true') {
-            toast.error('Tài khoản hoặc mật khẩu không chính xác!');
+        if (error === 'true' || error === 'oauth2_failed') {
+            toast.error('Đăng nhập Google thất bại hoặc bị từ chối!');
             window.history.replaceState({}, '', window.location.pathname);
         }
     }, [searchParams]);
 
+    const handleLoginSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+
+        try {
+            const data = await AuthService.login({ email, password });
+            toast.success(`Đăng nhập thành công! Xin chào ${data.name || data.email}`);
+            window.dispatchEvent(new Event("auth-change"));
+            if (data.role === 'ADMIN') {
+                router.push('/admin');
+            } else {
+                router.push('/');
+            }
+        } catch (err: any) {
+            console.error('Login error:', err);
+            const message = err.response?.data?.message || 'Tài khoản hoặc mật khẩu không chính xác!';
+            toast.error(message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
         <div className="relative w-screen h-screen">
-            {/* Background image */}
-            {/* <Image
-                src="https://i.pinimg.com/736x/dc/ee/32/dcee32cad9ca5f226c9dac794b103a9e.jpg"
-                alt=""
-                fill
-                style={{ objectFit: "cover" }}
-                className="blur-sm"
-            /> */}
-
             <div className="relative z-10 flex justify-center items-center h-screen">
                 <div
                     className="
@@ -72,10 +89,8 @@ const SignInContent = () => {
 
                     {/* Login */}
                     <form
-                        action={`${BACKEND_URL}/api/auth/login`}
-                        method="POST"
+                        onSubmit={handleLoginSubmit}
                         className="flex justify-center items-center p-5 mt-4"
-                        onSubmit={() => setIsLoading(true)}
                     >
                         <FieldGroup>
                             <Field>
@@ -85,7 +100,10 @@ const SignInContent = () => {
                                     />
                                     <Input
                                         id="fieldgroup-name"
-                                        name="username"
+                                        name="email"
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
                                         placeholder="Tên đăng nhập (Email)"
                                         autoComplete="off"
                                         required
@@ -100,10 +118,12 @@ const SignInContent = () => {
                                         id="fieldgroup-password"
                                         name="password"
                                         type="password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
                                         placeholder="Mật khẩu"
                                         required
                                         className="pl-10 text-white bg-white/5 border border-white/10 h-10 backdrop-blur-4xl"
-                                        autoComplete="new-password"
+                                        autoComplete="current-password"
                                     />
                                 </div>
 

@@ -1,11 +1,5 @@
-import axios from 'axios';
+import axiosInstance from '@/lib/axiosInstance';
 import { TUserProfileResponse } from '@/types';
-const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-
-const axiosInstance = axios.create({
-    baseURL: API_BASE_URL,
-    withCredentials: true,
-});
 
 export const UserService = {
     getCurrentUser: async (): Promise<TUserProfileResponse | null> => {

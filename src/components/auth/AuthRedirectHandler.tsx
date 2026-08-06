@@ -3,16 +3,17 @@
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { AuthService } from "@/services/AuthService";
 import { UserService } from "@/services/UserService";
 import LoginLoadingSkeleton from "@/components/auth/LoginLoadingSkeleton";
 
 /**
- * Handles the post-login flow:
- * 1. Detects `?login=success` query param
- * 2. Shows skeleton loading screen
- * 3. Fetches user profile to determine role
- * 4. Redirects: ADMIN → /admin, USER → /
- * 5. Shows success toast
+ * Handles the post-login flow for Google OAuth2:
+ * 1. Detects `?login=success` query param from Google OAuth2 redirect
+ * 2. Calls AuthService.exchangeOAuth2Token() to exchange HttpOnly cookie for JWT
+ * 3. Stores token in localStorage securely (URL never contained the token!)
+ * 4. Fetches user profile to determine role
+ * 5. Redirects: ADMIN → /admin, USER → /
  */
 const AuthRedirectContent = () => {
     const searchParams = useSearchParams();
@@ -30,39 +31,41 @@ const AuthRedirectContent = () => {
 
             const handlePostLogin = async () => {
                 try {
-                    // Simulate a minimum loading time for UX polish (at least 1.5s)
-                    const [userProfile] = await Promise.all([
-                        UserService.getCurrentUser(),
-                        new Promise((resolve) => setTimeout(resolve, 1500)),
+                    // Exchange HttpOnly cookie for JWT token & fetch profile in parallel with min loading time
+                    const [authData] = await Promise.all([
+                        AuthService.exchangeOAuth2Token(),
+                        new Promise((resolve) => setTimeout(resolve, 1200)),
                     ]);
 
-                    if (userProfile && userProfile.authenticated) {
-                        // Dispatch auth-change event so SideBar updates
+                    if (authData && authData.token) {
+                        // Dispatch auth-change event so UI updates immediately
                         window.dispatchEvent(new Event("auth-change"));
 
-                        const displayName =
-                            userProfile.name || userProfile.email || "bạn";
+                        const displayName = authData.name || authData.email || "bạn";
 
-                        if (userProfile.role === "ADMIN") {
-                            toast.success(
-                                `Chào mừng quản trị viên ${displayName}!`
-                            );
+                        if (authData.role === "ADMIN") {
+                            toast.success(`Chào mừng quản trị viên ${displayName}!`);
                             router.replace("/admin");
                         } else {
                             toast.success(`Đăng nhập thành công! Xin chào ${displayName}`);
                             router.replace("/");
                         }
                     } else {
-                        // Authentication failed — redirect back to sign-in
-                        toast.error("Phiên đăng nhập không hợp lệ. Vui lòng thử lại.");
-                        router.replace("/sign-in");
+                        // Fallback: try fetching current user if token was already set
+                        const userProfile = await UserService.getCurrentUser();
+                        if (userProfile && userProfile.authenticated) {
+                            window.dispatchEvent(new Event("auth-change"));
+                            router.replace("/");
+                        } else {
+                            toast.error("Phiên đăng nhập không hợp lệ. Vui lòng thử lại.");
+                            router.replace("/sign-in");
+                        }
                     }
                 } catch (error) {
-                    console.error("Error during post-login redirect:", error);
-                    toast.error("Đã có lỗi xảy ra. Vui lòng thử lại.");
+                    console.error("Error during token exchange:", error);
+                    toast.error("Đăng nhập bằng Google không thành công. Vui lòng thử lại.");
                     router.replace("/sign-in");
                 } finally {
-                    // Small delay before hiding skeleton to allow navigation to start
                     setTimeout(() => setIsAuthLoading(false), 300);
                 }
             };

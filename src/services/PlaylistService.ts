@@ -1,12 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { TPlaylistResponse } from "@/types";
-import axios from "axios";
-
-const axiosInstance = axios.create({
-    withCredentials: true,
-    headers: {
-        "Content-Type": "application/json",
-    }
-})
+import axiosInstance from "@/lib/axiosInstance";
 
 type TApiResponse<T> = {
     success: boolean;

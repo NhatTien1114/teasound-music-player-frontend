@@ -1,5 +1,5 @@
 import React from 'react'
-import { Users, Music, ListMusic, PlayCircle, TrendingUp, MoreHorizontal } from 'lucide-react'
+import { Users, Music, ListMusic, PlayCircle, TrendingUp } from 'lucide-react'
 import AdminChart from '@/components/admin/AdminChart'
 
 export default function AdminDashboardPage() {
@@ -27,6 +27,9 @@ export default function AdminDashboardPage() {
         { id: 4, title: "Someone You Loved", artist: "Lewis Capaldi", plays: "72K" },
         { id: 5, title: "Watermelon Sugar", artist: "Harry Styles", plays: "65K" },
     ];
+
+
+
 
     return (
         <div className="flex flex-col gap-8 max-w-7xl mx-auto pb-10">
