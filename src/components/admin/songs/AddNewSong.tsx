@@ -19,25 +19,28 @@ import {
 import {
     Select,
     SelectContent,
-    SelectGroup,
     SelectItem,
-    SelectLabel,
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input";
-import { Save, Image as ImageIcon, Link as LinkIcon, Clock, Headphones, Play } from "lucide-react";
+import { Save, Image as ImageIcon, Clock, Headphones, Play } from "lucide-react";
 import { UploadButton } from "@/utils/uploadthing";
 import Image from "next/image";
 import { SongService } from "@/services/SongService";
 import { toast } from "sonner";
 import { typeOfMusic } from "@/constants";
 
+const SONG_TYPES = [
+    "POP", "ROCK", "HIPHOP", "RNB", "EDM", "JAZZ",
+    "CLASSICAL", "LOFI", "KPOP", "VPOP", "ACOUSTIC",
+    "INDIE", "REMIX", "OTHER"
+] as const;
 
 const formSchema = z.object({
     name: z.string().min(2, { message: "Tên bài hát phải có ít nhất 2 ký tự" }),
     description: z.string().optional(),
-    type: z.enum(typeOfMusic.map(item => item.label), {
+    type: z.enum(SONG_TYPES, {
         error: "Vui lòng chọn thể loại",
     }),
     author: z.string().min(1, { message: "Vui lòng chọn nghệ sĩ" }),
@@ -158,7 +161,7 @@ function AddNewSong() {
 
                                     <Select
                                         onValueChange={field.onChange}
-                                        defaultValue={field.value}
+                                        value={field.value}
                                     >
                                         <FormControl>
                                             <SelectTrigger className={`${inputClasses} h-12 w-full text-sm`}>
@@ -190,7 +193,7 @@ function AddNewSong() {
 
                                     <Select
                                         onValueChange={field.onChange}
-                                        defaultValue={field.value}
+                                        value={field.value}
                                     >
                                         <FormControl>
                                             <SelectTrigger className={`${inputClasses} h-12 w-full text-sm`}>
@@ -232,12 +235,10 @@ function AddNewSong() {
                                                 <UploadButton
                                                     endpoint="imageUploader"
                                                     onClientUploadComplete={(res) => {
-                                                        // Do something with the response
                                                         console.log("Files: ", res);
                                                         form.setValue("thumbnailUrl", res[0].url);
                                                     }}
                                                     onUploadError={(error: Error) => {
-                                                        // Do something with the error.
                                                         console.error(`ERROR! ${error.message}`);
                                                     }}
                                                 />

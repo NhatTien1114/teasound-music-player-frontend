@@ -3,15 +3,18 @@ import axiosInstance from "@/lib/axiosInstance";
 export interface LoginRequestData {
     email?: string;
     password?: string;
+    displayName?: string;
+    phoneNumber?: string;
 }
 
 export interface AuthResponseData {
-    token: string;
-    id: number;
-    email: string;
-    name: string;
+    token?: string;
+    id?: number;
+    email?: string;
+    name?: string;
     avatarUrl?: string;
-    role: string;
+    role?: string;
+    message?: string;
 }
 
 export const AuthService = {
@@ -25,9 +28,6 @@ export const AuthService = {
 
     register: async (data: LoginRequestData): Promise<AuthResponseData> => {
         const response = await axiosInstance.post<AuthResponseData>("/api/auth/register", data);
-        if (response.data?.token) {
-            localStorage.setItem("token", response.data.token);
-        }
         return response.data;
     },
 

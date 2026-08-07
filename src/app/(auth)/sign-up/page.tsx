@@ -13,11 +13,18 @@ import IconMail from '@/components/icons/IconMail'
 import IconPhone from '@/components/icons/IconPhone'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { AuthService } from '@/services/AuthService'
 
 const SignUpContent = () => {
     const [isLoading, setIsLoading] = useState(false);
+    const [email, setEmail] = useState('');
+    const [displayName, setDisplayName] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');
+    const [password, setPassword] = useState('');
+
     const searchParams = useSearchParams();
+    const router = useRouter();
 
     useEffect(() => {
         const error = searchParams.get('error');
@@ -26,18 +33,31 @@ const SignUpContent = () => {
         }
     }, [searchParams]);
 
+    const handleRegisterSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+
+        try {
+            await AuthService.register({
+                email,
+                displayName,
+                phoneNumber,
+                password,
+            });
+
+            toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
+            router.push('/sign-in?registered=true');
+        } catch (error: any) {
+            console.error("Register error:", error);
+            const message = error.response?.data?.message || "Đăng ký thất bại. Vui lòng thử lại!";
+            toast.error(message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
         <div className="relative w-screen h-screen">
-            {/* Background image */}
-            {/* <Image
-                src="https://i.pinimg.com/736x/dc/ee/32/dcee32cad9ca5f226c9dac794b103a9e.jpg"
-                alt=""
-                fill
-                style={{ objectFit: "cover" }}
-                className="blur-sm"
-                priority
-            /> */}
-
             <div className="relative z-10 flex justify-center items-center h-screen">
                 <div
                     className="
@@ -63,12 +83,10 @@ const SignUpContent = () => {
                         <h4 className="flex justify-center items-center text-gray-300 text-sm mt-2 gap-1">Bạn đã có tài khoản?<Link href="/sign-in" className="text-white hover:text-secondary font-semibold">Đăng nhập!</Link></h4>
                     </div>
 
-                    {/* Login */}
+                    {/* Form Đăng ký */}
                     <form
-                        action={`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/register`}
-                        method="POST"
+                        onSubmit={handleRegisterSubmit}
                         className="flex justify-center items-center p-5 mt-4"
-                        onSubmit={() => setIsLoading(true)}
                     >
                         <FieldGroup>
                             <Field>
@@ -79,6 +97,9 @@ const SignUpContent = () => {
                                     <Input
                                         id="fieldgroup-mail"
                                         name="email"
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
                                         placeholder="Email"
                                         autoComplete="off"
                                         required
@@ -95,6 +116,9 @@ const SignUpContent = () => {
                                         <Input
                                             id="fieldgroup-name"
                                             name="displayName"
+                                            type="text"
+                                            value={displayName}
+                                            onChange={(e) => setDisplayName(e.target.value)}
                                             placeholder="Tên đăng nhập"
                                             autoComplete="off"
                                             required
@@ -111,6 +135,8 @@ const SignUpContent = () => {
                                             id="form-phone"
                                             name="phoneNumber"
                                             type="tel"
+                                            value={phoneNumber}
+                                            onChange={(e) => setPhoneNumber(e.target.value)}
                                             placeholder="(+84) 123 456 789"
                                             autoComplete="off"
                                             className="pl-10 text-white bg-white/5 border border-white/10 h-10 backdrop-blur-4xl"
@@ -126,6 +152,8 @@ const SignUpContent = () => {
                                         id="fieldgroup-password"
                                         name="password"
                                         type="password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
                                         placeholder="Mật khẩu"
                                         required
                                         className="pl-10 text-white bg-white/5 border border-white/10 h-10 backdrop-blur-4xl"
