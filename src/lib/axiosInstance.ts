@@ -2,11 +2,6 @@ import axios from "axios";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-/**
- * Shared axios instance cho toàn bộ frontend.
- * - Tự động gắn Bearer token từ localStorage vào mọi request
- * - Tự động xử lý 401 (xóa token, redirect sign-in)
- */
 const axiosInstance = axios.create({
     baseURL: API_BASE_URL,
     headers: {
@@ -14,7 +9,6 @@ const axiosInstance = axios.create({
     },
 });
 
-// Request interceptor: gắn JWT token
 axiosInstance.interceptors.request.use(
     (config) => {
         if (typeof window !== "undefined") {
@@ -30,7 +24,6 @@ axiosInstance.interceptors.request.use(
     }
 );
 
-// Response interceptor: xử lý 401 Unauthorized
 axiosInstance.interceptors.response.use(
     (response) => response,
     (error) => {

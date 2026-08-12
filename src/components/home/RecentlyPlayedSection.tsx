@@ -50,7 +50,7 @@ export default function RecentlyPlayedSection() {
 
   return (
     <section>
-      <h2 className="text-xl font-bold text-white mb-5">Recently played</h2>
+      <h2 className="text-xl font-bold text-white mb-5">Bài hát nghe gần đây</h2>
       <div className="grid grid-cols-2 gap-1">
         {isLoading && user?.id
           ? Array.from({ length: 4 }).map((_, index) => (

@@ -10,9 +10,13 @@ import {
   Star,
   Volume2,
   Shuffle,
+  Maximize2,
 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useState, useEffect } from "react";
+import slugify from "slugify";
+import { encodeId } from "@/utils/hashId";
 
 export default function NowPlayingBar() {
   const { currentSong, isPlaying, audioRef, togglePlay, seek } = usePlayer();
@@ -28,6 +32,13 @@ export default function NowPlayingBar() {
 
   if (!currentSong) return null;
 
+  const slugifyName = slugify(currentSong.name || "", {
+    lower: true,
+    locale: "vi",
+    strict: true,
+    replacement: "-",
+  })
+
   return (
     <div className="flex items-center gap-5 px-6 py-3 bg-grayDarker/80 backdrop-blur-xl border-t border-white/5">
       <audio
@@ -38,17 +49,23 @@ export default function NowPlayingBar() {
       />
       {/* Song Info */}
       <div className="flex items-center gap-3 w-52 shrink-0">
-        <div className={cn(
-          "relative w-12 h-12 rounded-full shrink-0 shadow-lg",
-          isPlaying && "animate-[spin_8s_linear_infinite]"
-        )}>
+        <Link
+          href={`/song/${slugifyName}?id=${encodeId(currentSong.id)}`}
+          className={cn(
+            "relative w-12 h-12 rounded-full shrink-0 shadow-lg group/expand",
+            isPlaying && "animate-[spin_8s_linear_infinite]"
+          )}
+        >
           <Image
             src={currentSong.thumbnailUrl ?? "/placeholder.jpg"}
             alt={currentSong.name ?? ""}
             fill
-            className="object-cover rounded-full"
+            className="object-cover rounded-full transition-opacity duration-300"
           />
-        </div>
+          <div className="absolute inset-0 bg-black/10 flex items-center justify-center opacity-0 group-hover/expand:opacity-100 transition-opacity duration-300">
+            <Maximize2 className="w-4 h-4 text-white" />
+          </div>
+        </Link>
         <div className="min-w-0">
           <p className="text-sm font-semibold text-white truncate">
             {currentSong.name}

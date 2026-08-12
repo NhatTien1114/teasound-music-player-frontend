@@ -26,7 +26,7 @@ export default function PlaylistSection() {
     if (playlists.length === 0) return null;
 
     return (
-        <ScrollableSection title="Playlist">
+        <ScrollableSection title="Danh sách phát của bạn">
             {playlists && playlists.map((playlist) => (
                 <PlaylistCard key={playlist.id} playlist={playlist} />
             ))}

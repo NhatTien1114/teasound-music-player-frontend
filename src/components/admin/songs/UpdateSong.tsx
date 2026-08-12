@@ -24,7 +24,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input";
-import { Save, Image as ImageIcon, Clock, Headphones, Play, Loader2 } from "lucide-react";
+import { Save, Image as ImageIcon, Clock, Headphones, Play, Loader2, FileText, Sparkles } from "lucide-react";
 import { UploadButton } from "@/utils/uploadthing";
 import Image from "next/image";
 import { SongService } from "@/services/SongService";
@@ -47,15 +47,16 @@ const formSchema = z.object({
     videoUrl: z.string().optional(),
     audioUrl: z.string().optional(),
     thumbnailUrl: z.string().optional(),
+    lyric: z.string().optional(),
     duration: z.string().optional(),
 });
 
 function UpdateSong({ songId }: { songId: string }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isFetchingLrc, setIsFetchingLrc] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [authors, setAuthors] = useState<TAuthorResponse[]>([]);
 
-    // Khai báo tất cả hooks trước bất kỳ early return nào
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -66,6 +67,7 @@ function UpdateSong({ songId }: { songId: string }) {
             videoUrl: "",
             audioUrl: "",
             thumbnailUrl: "",
+            lyric: "",
             duration: "",
         },
     });
@@ -90,6 +92,7 @@ function UpdateSong({ songId }: { songId: string }) {
                     videoUrl: song.videoUrl || "",
                     audioUrl: song.audioUrl || "",
                     thumbnailUrl: song.thumbnailUrl || "",
+                    lyric: song.lyric || "",
                     duration: song.duration || "",
                 });
             }
@@ -97,6 +100,59 @@ function UpdateSong({ songId }: { songId: string }) {
         };
         fetchSongById();
     }, [songId, form]);
+
+    const handleFetchLRCLIB = async () => {
+        const trackName = form.getValues("name");
+        const authorIdStr = form.getValues("author");
+        const selectedAuthor = authors.find((a) => a.id?.toString() === authorIdStr);
+        const artistName = selectedAuthor?.name || "";
+
+        if (!trackName) {
+            toast.error("Vui lòng nhập tên bài hát trước khi tìm lời trên LRCLIB");
+            return;
+        }
+
+        try {
+            setIsFetchingLrc(true);
+            let url = `https://lrclib.net/api/get?track_name=${encodeURIComponent(trackName)}`;
+            if (artistName) {
+                url += `&artist_name=${encodeURIComponent(artistName)}`;
+            }
+
+            let res = await fetch(url);
+            let data = res.ok ? await res.json() : null;
+
+            if (!data || (!data.syncedLyrics && !data.plainLyrics)) {
+                const searchUrl = `https://lrclib.net/api/search?q=${encodeURIComponent(trackName + (artistName ? " " + artistName : ""))}`;
+                const searchRes = await fetch(searchUrl);
+                if (searchRes.ok) {
+                    const searchData = await searchRes.json();
+                    if (Array.isArray(searchData) && searchData.length > 0) {
+                        data = searchData[0];
+                    }
+                }
+            }
+
+            const lyricResult = data?.syncedLyrics || data?.plainLyrics;
+            if (lyricResult) {
+                form.setValue("lyric", lyricResult);
+                toast.success("Đã tìm thấy lời bài hát từ LRCLIB!");
+                if (data?.duration && !form.getValues("duration")) {
+                    const mins = Math.floor(data.duration / 60);
+                    const secs = Math.floor(data.duration % 60);
+                    const formattedDuration = `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+                    form.setValue("duration", formattedDuration);
+                }
+            } else {
+                toast.error("Không tìm thấy lời bài hát phù hợp trên LRCLIB");
+            }
+        } catch (error) {
+            console.error("LRCLIB Error:", error);
+            toast.error("Lỗi khi kết nối đến LRCLIB API");
+        } finally {
+            setIsFetchingLrc(false);
+        }
+    };
 
     // Fetch authors
     useEffect(() => {
@@ -134,7 +190,6 @@ function UpdateSong({ songId }: { songId: string }) {
         }
     }
 
-    // Loading state — sau tất cả hooks
     if (isLoading) {
         return (
             <div className="bg-grayDarker rounded-xl shadow-sm border border-grayDark/20 p-12 flex items-center justify-center">
@@ -345,6 +400,45 @@ function UpdateSong({ songId }: { songId: string }) {
                                             <Input className={inputClasses} placeholder="https://..." {...field} />
                                         </div>
                                     </FormControl>
+                                    <FormMessage className="text-red-400 text-xs" />
+                                </FormItem>
+                            )}
+                        />
+
+                        {/* Khối Lyrics */}
+                        <FormField
+                            control={form.control}
+                            name="lyric"
+                            render={({ field }) => (
+                                <FormItem className="col-span-1 md:col-span-2">
+                                    <div className="space-y-4 rounded-xl bg-grayDarkest border border-grayDark/20 p-5">
+                                        <div className="flex items-center justify-between">
+                                            <FormLabel className="text-grayDark font-medium text-sm flex items-center gap-2 mb-0">
+                                                <FileText className="w-4 h-4 text-primary" />
+                                                Lời bài hát (Định dạng LRC hoặc Plain Text)
+                                            </FormLabel>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={handleFetchLRCLIB}
+                                                disabled={isFetchingLrc}
+                                                className="gap-2 border-primary/40 text-primary hover:bg-primary/80 hover:text-white"
+                                            >
+                                                {isFetchingLrc ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                                                Tự động lấy từ LRCLIB
+                                            </Button>
+                                        </div>
+
+                                        <FormControl>
+                                            <textarea
+                                                rows={10}
+                                                className="w-full rounded-md px-3 py-3 text-sm font-mono bg-grayDarker border border-grayDark/20 text-white focus:border-primary outline-none resize-y"
+                                                placeholder={`Paste lời bài hát định dạng LRC vào đây...\nVí dụ:\n[00:10.00] Dòng lời bài hát 1\n[00:15.50] Dòng lời bài hát 2`}
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                    </div>
                                     <FormMessage className="text-red-400 text-xs" />
                                 </FormItem>
                             )}

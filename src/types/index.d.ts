@@ -31,6 +31,7 @@ export type TSongResponse = {
     type?: TTypeSong,
     audioUrl?: string,
     videoUrl?: string,
+    lyric?: string,
 }
 
 export type TAllSongs = {
@@ -72,6 +73,8 @@ export type TPlayerContext = {
     currentSong: TSongResponse | null;
     isPlaying: boolean;
     audioRef: React.RefObject<HTMLAudioElement>;
+    currentTime: number;
+    duration: number;
     playSong: (song: TSongResponse) => void;
     togglePlay: () => void;
     seek: (time: number) => void;
