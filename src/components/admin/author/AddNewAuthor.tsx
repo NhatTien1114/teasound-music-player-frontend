@@ -20,7 +20,6 @@ import { UploadButton } from "@/utils/uploadthing";
 import Image from "next/image";
 import { toast } from "sonner";
 import { AuthorService } from "@/services/AuthorService";
-import { revalidatePath } from "next/cache";
 
 
 const formSchema = z.object({
@@ -50,7 +49,6 @@ function AddNewAuthor() {
             if (res?.success) {
                 toast.success(res?.message);
                 form.reset();
-                revalidatePath('/admin/authors')
             } else {
                 toast.error(res?.message);
             }

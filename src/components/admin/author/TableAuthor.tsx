@@ -163,7 +163,7 @@ const TableAuthor = () => {
                                         <Link
                                             className="size-8 rounded-lg border border-grayDark/15 bg-grayDarkest/50 flex items-center justify-center text-grayDark hover:text-amber-400 hover:border-amber-400/30 hover:bg-amber-400/5 transition-all"
                                             title="Chỉnh sửa"
-                                            href={`/admin/authors/edit/${author.id}`}
+                                            href={`/admin/authors/update/${author.id}`}
                                         >
                                             <Edit className="w-3.5 h-3.5" />
                                         </Link>

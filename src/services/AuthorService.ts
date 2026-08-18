@@ -64,9 +64,44 @@ const getAllAuthorsPaginated = async (params: TAllAuthors): Promise<TApiResponse
         };
     }
 }
+const getAuthorById = async ({ id }: { id: number }): Promise<TApiResponse<TAuthorResponse>> => {
+    try {
+        const response = await axiosInstance.get(`/api/authors/${id}`);
+        return {
+            success: true,
+            message: "Author fetched successfully",
+            data: response.data
+        };
+    } catch (error: any) {
+        return {
+            success: false,
+            message: error.response?.data?.message || "Something went wrong",
+            data: null
+        };
+    }
+}
+
+const updateAuthor = async ({ id, data }: { id: number; data: Partial<TAuthorResponse> }): Promise<TApiResponse<TAuthorResponse>> => {
+    try {
+        const response = await axiosInstance.put(`/api/authors/${id}`, data);
+        return {
+            success: true,
+            message: response.data?.message || "Author updated successfully",
+            data: response.data?.result || response.data
+        };
+    } catch (error: any) {
+        return {
+            success: false,
+            message: error.response?.data?.message || "Something went wrong",
+            data: null
+        };
+    }
+}
 
 export const AuthorService = {
     createAuthor,
     getAllAuthors,
     getAllAuthorsPaginated,
+    getAuthorById,
+    updateAuthor,
 }
