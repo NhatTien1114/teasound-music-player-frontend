@@ -19,11 +19,13 @@ export interface AuthResponseData {
 
 export const AuthService = {
     login: async (data: LoginRequestData): Promise<AuthResponseData> => {
-        const response = await axiosInstance.post<AuthResponseData>("/api/auth/login", data);
-        if (response.data?.token) {
-            localStorage.setItem("token", response.data.token);
+        const response = await axiosInstance.post<any>("/api/auth/login", data);
+        const resData = response.data;
+        const resultData: AuthResponseData = resData?.result || resData;
+        if (resultData?.token) {
+            localStorage.setItem("token", resultData.token);
         }
-        return response.data;
+        return resultData;
     },
 
     register: async (data: LoginRequestData): Promise<AuthResponseData> => {

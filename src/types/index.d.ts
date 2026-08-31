@@ -97,3 +97,18 @@ export type TCreatePlaylistRequest = {
     songs?: TSongResponse[];
 }
 
+export type TCommentResponse = {
+    id: number;
+    content: string;
+    songId: number;
+    userId: number;
+    userName: string;
+    userAvatarUrl?: string;
+    createdAt: string;
+    parentCommentId?: number | null;
+}
+
+export type TCreateCommentRequest = {
+    content: string;
+    parentId?: number | null;
+}

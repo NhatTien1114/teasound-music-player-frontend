@@ -17,12 +17,14 @@ import {
     Shuffle,
     ListMusic,
     Share2,
+    MessageCircle,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import CommentPanel from "./CommentPanel";
 
 // Helper to parse LRC lyrics format [mm:ss.xx]
 function parseLrc(lrcText: string): { time: number; text: string }[] {
@@ -59,16 +61,6 @@ function parseLrc(lrcText: string): { time: number; text: string }[] {
     return result.sort((a, b) => a.time - b.time);
 }
 
-// Demo lyrics fallback when song has no lyric field yet
-const DEMO_LYRICS = [
-    { time: 0, text: "" },
-    { time: 5, text: "Bài hát đang phát..." },
-    { time: 10, text: "Chưa có lời bài hát cho bài này" },
-    { time: 15, text: "Admin có thể cập nhật lời tại trang quản trị" },
-    { time: 20, text: "" },
-    { time: 25, text: "TeaSound ♫" },
-];
-
 export default function SongLyricView() {
     const searchParams = useSearchParams();
     const encodedId = searchParams.get("id");
@@ -84,13 +76,14 @@ export default function SongLyricView() {
             const parsed = parseLrc(displaySong.lyric);
             if (parsed.length > 0) return parsed;
         }
-        return DEMO_LYRICS;
+        return [];
     }, [displaySong?.lyric]);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [currentLineIndex, setCurrentLineIndex] = useState(0);
     const [volume, setVolume] = useState(1);
     const [showVolumeSlider, setShowVolumeSlider] = useState(false);
+    const [showCommentPanel, setShowCommentPanel] = useState(false);
 
     const lyricsContainerRef = useRef<HTMLDivElement>(null);
     const lineRefs = useRef<(HTMLParagraphElement | null)[]>([]);
@@ -344,6 +337,15 @@ export default function SongLyricView() {
                             <Star className="w-5 h-5" fill="currentColor" />
                         </button>
 
+                        {/* Comment */}
+                        <button
+                            onClick={() => setShowCommentPanel(true)}
+                            className="relative text-white/50 hover:text-white transition-all duration-200 hover:scale-110 active:scale-95"
+                            title="Bình luận"
+                        >
+                            <MessageCircle className="w-5 h-5" />
+                        </button>
+
                         {/* Volume */}
                         <div className="relative flex items-center gap-2">
                             <button
@@ -431,6 +433,15 @@ export default function SongLyricView() {
 
             {/* Bottom safe area for mobile */}
             <div className="h-2 sm:h-4 shrink-0" />
+
+            {/* Comment Panel */}
+            {displaySong?.id && (
+                <CommentPanel
+                    songId={displaySong.id}
+                    isOpen={showCommentPanel}
+                    onClose={() => setShowCommentPanel(false)}
+                />
+            )}
         </div>
     );
 }
