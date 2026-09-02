@@ -245,145 +245,168 @@ export default function SongLyricView() {
 
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col lg:flex-row gap-6 lg:gap-10 px-4 sm:px-6 lg:px-12 xl:px-20 overflow-hidden min-h-0">
-                {/* Left Column - Artwork + Controls */}
-                <div className="flex flex-col items-center lg:items-start lg:justify-center gap-5 lg:w-95 xl:w-105 shrink-0 lg:py-8">
-                    {/* Album Artwork */}
-                    <div className="relative group">
-                        <div
-                            className="absolute -inset-4 rounded-3xl opacity-40 blur-2xl transition-opacity duration-500"
-                            style={{
-                                background: color
-                                    ? `radial-gradient(circle, rgba(${color.r}, ${color.g}, ${color.b}, 0.6), transparent)`
-                                    : "none",
-                            }}
-                        />
-                        <div className="relative w-48 h-48 sm:w-64 sm:h-64 lg:w-72 lg:h-72 xl:w-80 xl:h-80 rounded-2xl overflow-hidden shadow-2xl shadow-black/50">
-                            <Image
-                                src={displaySong.thumbnailUrl ?? "/placeholder.jpg"}
-                                alt={displaySong.name ?? "Song artwork"}
-                                fill
-                                className="object-cover transition-transform duration-700 group-hover:scale-105"
-                                priority
-                            />
-                        </div>
-                    </div>
+                {/* Left Column - Artwork + Controls (scrollable) */}
+                <div className="lg:w-80 xl:w-88 shrink-0 lg:py-8 overflow-y-auto scrollbar-hide min-h-0 flex flex-col">
+                    <div className="flex flex-col items-center gap-4 my-auto">
 
-                    {/* Song Info */}
-                    <div className="w-full max-w-[320px] lg:max-w-none text-center lg:text-left">
-                        <h1 className="text-xl sm:text-2xl font-bold text-white truncate mb-1">
-                            {displaySong.name}
-                        </h1>
-                        <p className="text-sm sm:text-base text-white/60 truncate">
-                            {displaySong.description ?? "Unknown Artist"}
-                        </p>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="flex items-center gap-5 w-full py-3">
-                        <audio
-                            ref={audioRef}
-                            onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
-                            onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
-                            onEnded={() => togglePlay()}
-                        />
-                        <input
-                            type="range"
-                            min={0}
-                            max={duration || 0}
-                            value={currentTime}
-                            onChange={(e) => seek(Number(e.target.value))}
-                            className="flex-1"
-                        />
-                    </div>
-
-                    {/* Time */}
-                    <div className="flex items-center gap-2 shrink-0 text-xs text-grayDark tabular-nums">
-                        <span>{Math.floor(currentTime / 60)}:{Math.floor(currentTime % 60).toString().padStart(2, '0')}</span>
-                        <span className="text-white/20">/</span>
-                        <span>{Math.floor(duration / 60)}:{Math.floor(duration % 60).toString().padStart(2, '0')}</span>
-                    </div>
-
-                    {/* Playback Controls */}
-                    <div className="flex items-center justify-center lg:justify-start gap-6 w-full max-w-[320px] lg:max-w-none">
-                        <button className="text-white/50 hover:text-white transition-colors duration-200">
-                            <Shuffle className="w-4 h-4" />
-                        </button>
-                        <button className="text-white/80 hover:text-white transition-all duration-200 active:scale-90">
-                            <SkipBack className="w-6 h-6" fill="currentColor" />
-                        </button>
-                        <button
-                            onClick={() => togglePlay()}
-                            className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center
-                                hover:bg-white/20 hover:scale-105 transition-all duration-300 active:scale-95
-                                ring-1 ring-white/10"
-                        >
-                            {isPlaying ? (
-                                <Pause className="w-6 h-6 text-white" fill="white" />
-                            ) : (
-                                <Play className="w-6 h-6 text-white ml-1" fill="white" />
-                            )}
-                        </button>
-                        <button className="text-white/80 hover:text-white transition-all duration-200 active:scale-90">
-                            <SkipForward className="w-6 h-6" fill="currentColor" />
-                        </button>
-                        <button className="text-white/50 hover:text-white transition-colors duration-200">
-                            <Repeat className="w-4 h-4" />
-                        </button>
-                    </div>
-
-                    {/* Extra Controls Row */}
-                    <div className="flex items-center justify-center lg:justify-between gap-4 w-full max-w-[320px] lg:max-w-none">
-                        <button className="text-yellow-400/80 hover:text-yellow-300 transition-colors duration-200">
-                            <Star className="w-5 h-5" fill="currentColor" />
-                        </button>
-
-                        {/* Comment */}
-                        <button
-                            onClick={() => setShowCommentPanel(true)}
-                            className="relative text-white/50 hover:text-white transition-all duration-200 hover:scale-110 active:scale-95"
-                            title="Bình luận"
-                        >
-                            <MessageCircle className="w-5 h-5" />
-                        </button>
-
-                        {/* Volume */}
-                        <div className="relative flex items-center gap-2">
-                            <button
-                                onClick={() => setShowVolumeSlider(!showVolumeSlider)}
-                                className="text-white/50 hover:text-white transition-colors duration-200"
-                            >
-                                <Volume2 className="w-5 h-5" />
-                            </button>
+                        {/* Album Artwork */}
+                        <div className="relative group">
                             <div
-                                className={cn(
-                                    "flex items-center overflow-hidden transition-all duration-300",
-                                    showVolumeSlider ? "w-24 opacity-100" : "w-0 opacity-0"
-                                )}
-                            >
-                                <input
-                                    type="range"
-                                    min={0}
-                                    max={1}
-                                    step={0.01}
-                                    value={volume}
-                                    onChange={handleVolumeChange}
-                                    className="w-full h-1 appearance-none bg-white/20 rounded-full cursor-pointer
-                                        [&::-webkit-slider-thumb]:appearance-none
-                                        [&::-webkit-slider-thumb]:w-3
-                                        [&::-webkit-slider-thumb]:h-3
-                                        [&::-webkit-slider-thumb]:rounded-full
-                                        [&::-webkit-slider-thumb]:bg-white
-                                        [&::-moz-range-thumb]:w-3
-                                        [&::-moz-range-thumb]:h-3
-                                        [&::-moz-range-thumb]:rounded-full
-                                        [&::-moz-range-thumb]:bg-white
-                                        [&::-moz-range-thumb]:border-0"
-                                    style={{
-                                        background: `linear-gradient(to right, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.7) ${volume * 100}%, rgba(255,255,255,0.2) ${volume * 100}%, rgba(255,255,255,0.2) 100%)`,
-                                    }}
+                                className="absolute w-full h-full -inset-4 rounded-3xl opacity-40 blur-2xl transition-opacity duration-500"
+                                style={{
+                                    background: color
+                                        ? `radial-gradient(circle, rgba(${color.r}, ${color.g}, ${color.b}, 0.6), transparent)`
+                                        : "none",
+                                }}
+                            />
+                            <div className="relative w-48 h-48 sm:w-52 sm:h-52 lg:w-56 lg:h-56 xl:w-60 xl:h-60 rounded-2xl overflow-hidden shadow-2xl shadow-black/50">
+                                <Image
+                                    src={displaySong.thumbnailUrl ?? "/placeholder.jpg"}
+                                    alt={displaySong.name ?? "Song artwork"}
+                                    fill
+                                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                                    priority
                                 />
                             </div>
                         </div>
+
+                        {/* Playback Controls */}
+                        <div className="flex items-center justify-center gap-6 w-full">
+                            <button className="text-white/50 hover:text-white transition-colors duration-200">
+                                <Shuffle className="w-4 h-4" />
+                            </button>
+                            <button className="text-white/80 hover:text-white transition-all duration-200 active:scale-90">
+                                <SkipBack className="w-5 h-5" fill="currentColor" />
+                            </button>
+                            <button
+                                onClick={() => togglePlay()}
+                                className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center
+                                    hover:bg-white/20 hover:scale-105 transition-all duration-300 active:scale-95
+                                    ring-1 ring-white/10"
+                            >
+                                {isPlaying ? (
+                                    <Pause className="w-5 h-5 text-white" fill="white" />
+                                ) : (
+                                    <Play className="w-5 h-5 text-white ml-0.5" fill="white" />
+                                )}
+                            </button>
+                            <button className="text-white/80 hover:text-white transition-all duration-200 active:scale-90">
+                                <SkipForward className="w-5 h-5" fill="currentColor" />
+                            </button>
+                            <button className="text-white/50 hover:text-white transition-colors duration-200">
+                                <Repeat className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        {/* Progress Bar */}
+                        <div className="flex items-center gap-3 w-full">
+                            <audio
+                                ref={audioRef}
+                                onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+                                onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
+                                onEnded={() => togglePlay()}
+                            />
+                            <span className="text-xs text-white/40 tabular-nums shrink-0">
+                                {Math.floor(currentTime / 60)}:{Math.floor(currentTime % 60).toString().padStart(2, '0')}
+                            </span>
+                            <input
+                                type="range"
+                                min={0}
+                                max={duration || 0}
+                                value={currentTime}
+                                onChange={(e) => seek(Number(e.target.value))}
+                                className="flex-1"
+                            />
+                            <span className="text-xs text-white/40 tabular-nums shrink-0">
+                                {Math.floor(duration / 60)}:{Math.floor(duration % 60).toString().padStart(2, '0')}
+                            </span>
+                        </div>
+
+                        {/* Song Info */}
+                        <div className="w-full text-left">
+                            <h1 className="text-base font-bold text-white leading-tight mb-1">
+                                {displaySong.name}
+                            </h1>
+                            <p className="text-sm text-white/50 leading-relaxed line-clamp-2">
+                                {displaySong.description ?? "Unknown Artist"}
+                            </p>
+                        </div>
+
+                        {/* Star + Volume Row */}
+                        <div className="flex items-center justify-between w-full">
+                            <button className="text-yellow-400/80 hover:text-yellow-300 transition-colors duration-200">
+                                <Star className="w-5 h-5" fill="currentColor" />
+                            </button>
+
+                            {/* Volume */}
+                            <div className="relative flex items-center gap-2">
+                                <button
+                                    onClick={() => setShowVolumeSlider(!showVolumeSlider)}
+                                    className="text-white/50 hover:text-white transition-colors duration-200"
+                                >
+                                    <Volume2 className="w-5 h-5" />
+                                </button>
+                                <div
+                                    className={cn(
+                                        "flex items-center overflow-hidden transition-all duration-300",
+                                        showVolumeSlider ? "w-24 opacity-100" : "w-0 opacity-0"
+                                    )}
+                                >
+                                    <input
+                                        type="range"
+                                        min={0}
+                                        max={1}
+                                        step={0.01}
+                                        value={volume}
+                                        onChange={handleVolumeChange}
+                                        className="w-full h-1 appearance-none bg-white/20 rounded-full cursor-pointer
+                                            [&::-webkit-slider-thumb]:appearance-none
+                                            [&::-webkit-slider-thumb]:w-3
+                                            [&::-webkit-slider-thumb]:h-3
+                                            [&::-webkit-slider-thumb]:rounded-full
+                                            [&::-webkit-slider-thumb]:bg-white
+                                            [&::-moz-range-thumb]:w-3
+                                            [&::-moz-range-thumb]:h-3
+                                            [&::-moz-range-thumb]:rounded-full
+                                            [&::-moz-range-thumb]:bg-white
+                                            [&::-moz-range-thumb]:border-0"
+                                        style={{
+                                            background: `linear-gradient(to right, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.7) ${volume * 100}%, rgba(255,255,255,0.2) ${volume * 100}%, rgba(255,255,255,0.2) 100%)`,
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Comment Toggle Button */}
+                        <button
+                            onClick={() => setShowCommentPanel(!showCommentPanel)}
+                            className={cn(
+                                "flex items-center gap-1.5 py-1 transition-all duration-200 self-start",
+                                showCommentPanel
+                                    ? "text-white"
+                                    : "text-white/40 hover:text-white/70"
+                            )}
+                            title="Bình luận"
+                        >
+                            <MessageCircle className="w-4 h-4" />
+                            <span className="text-sm">Bình luận</span>
+                        </button>
+
+                        {/* Inline Comment Panel */}
+                        {displaySong?.id && (
+                            <div className="w-full">
+                                <CommentPanel
+                                    songId={displaySong.id}
+                                    isOpen={showCommentPanel}
+                                    onClose={() => setShowCommentPanel(false)}
+                                    inline
+                                />
+                            </div>
+                        )}
+
+                        {/* Bottom padding for scroll */}
+                        <div className="h-4 shrink-0" />
                     </div>
                 </div>
 
@@ -433,15 +456,6 @@ export default function SongLyricView() {
 
             {/* Bottom safe area for mobile */}
             <div className="h-2 sm:h-4 shrink-0" />
-
-            {/* Comment Panel */}
-            {displaySong?.id && (
-                <CommentPanel
-                    songId={displaySong.id}
-                    isOpen={showCommentPanel}
-                    onClose={() => setShowCommentPanel(false)}
-                />
-            )}
         </div>
     );
 }

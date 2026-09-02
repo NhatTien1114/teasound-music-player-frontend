@@ -13,6 +13,7 @@ interface CommentPanelProps {
     songId: number;
     isOpen: boolean;
     onClose: () => void;
+    inline?: boolean;
 }
 
 // Helper: format relative time
@@ -163,7 +164,7 @@ function CommentItem({
             {hasReplies && (
                 <button
                     onClick={() => setShowReplies(!showReplies)}
-                    className="flex items-center gap-1 ml-12 mb-1 text-xs text-secondary/80 hover:text-secondary transition-colors duration-200"
+                    className="flex items-center gap-1 ml-12 mb-1 text-xs text-white/80 hover:text-white transition-colors duration-200"
                 >
                     <ChevronDown
                         className={cn(
@@ -196,7 +197,7 @@ function CommentItem({
     );
 }
 
-export default function CommentPanel({ songId, isOpen, onClose }: CommentPanelProps) {
+export default function CommentPanel({ songId, isOpen, onClose, inline = false }: CommentPanelProps) {
     const [comments, setComments] = useState<TCommentResponse[]>([]);
     const [loading, setLoading] = useState(false);
     const [newComment, setNewComment] = useState("");
@@ -255,7 +256,6 @@ export default function CommentPanel({ songId, isOpen, onClose }: CommentPanelPr
                 setNewComment("");
                 setReplyTo(null);
                 await fetchComments();
-                toast.success("Đã gửi bình luận");
             } else {
                 toast.error("Không thể gửi bình luận");
             }
@@ -291,6 +291,154 @@ export default function CommentPanel({ songId, isOpen, onClose }: CommentPanelPr
         }
     };
 
+    // Inline comment input area (shared between both modes)
+    const renderInputArea = () => (
+        <div className={cn("shrink-0 border-t border-white/8 py-4", inline ? "px-0" : "px-5")}>
+            {/* Reply indicator */}
+            {replyTo && (
+                <div className="flex items-center justify-between mb-2.5 px-3 py-2 rounded-lg bg-secondary/10 border border-secondary/20">
+                    <div className="flex items-center gap-2 min-w-0">
+                        <Reply className="w-3.5 h-3.5 text-secondary shrink-0" />
+                        <span className="text-xs text-secondary truncate">
+                            Trả lời <strong>{replyTo.userName}</strong>
+                        </span>
+                    </div>
+                    <button
+                        onClick={() => setReplyTo(null)}
+                        className="text-white/40 hover:text-white/60 transition-colors shrink-0 ml-2"
+                    >
+                        <X className="w-3.5 h-3.5" />
+                    </button>
+                </div>
+            )}
+
+            {isLoggedIn ? (
+                <div className="flex items-end gap-3">
+                    {/* User avatar */}
+                    <div className="shrink-0 mb-0.5">
+                        {user?.avatarUrl ? (
+                            <Image
+                                src={user.avatarUrl}
+                                alt="Avatar"
+                                width={32}
+                                height={32}
+                                className="w-8 h-8 rounded-full object-cover ring-2 ring-white/5"
+                            />
+                        ) : (
+                            <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-secondary flex items-center justify-center text-white text-xs font-semibold ring-2 ring-white/5">
+                                {user?.name?.charAt(0)?.toUpperCase() || "T"}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Input */}
+                    <div className="flex-1 relative">
+                        <textarea
+                            ref={inputRef}
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            placeholder={replyTo ? `Trả lời ${replyTo.userName}...` : "Viết bình luận..."}
+                            rows={1}
+                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-2.5 text-sm text-white placeholder:text-white/25
+                                focus:outline-none focus:border-secondary/40 focus:bg-white/8
+                                resize-none overflow-hidden transition-all duration-200
+                                min-h-[40px] max-h-[120px]"
+                            style={{ fieldSizing: "content" } as React.CSSProperties}
+                        />
+                    </div>
+
+                    {/* Send button */}
+                    <button
+                        onClick={handleSubmit}
+                        disabled={!newComment.trim() || sending}
+                        className={cn(
+                            "shrink-0 w-9 h-9 rounded-full flex items-center justify-center mb-0.5 transition-all duration-300",
+                            newComment.trim()
+                                ? "bg-secondary text-white hover:bg-secondary/90 hover:scale-105 active:scale-95 shadow-lg shadow-secondary/25"
+                                : "bg-white/5 text-white/20 cursor-not-allowed"
+                        )}
+                    >
+                        {sending ? (
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                            <Send className="w-4 h-4" />
+                        )}
+                    </button>
+                </div>
+            ) : (
+                <div className="text-center py-2">
+                    <p className="text-sm text-white/40">
+                        <a href="/sign-in" className="text-secondary hover:text-secondary/80 font-medium transition-colors">
+                            Đăng nhập
+                        </a>
+                        {" "}để bình luận
+                    </p>
+                </div>
+            )}
+        </div>
+    );
+
+    // Inline comment list (shared between both modes)
+    const renderCommentList = () => (
+        <>
+            {loading ? (
+                <div className="flex flex-col items-center justify-center py-16">
+                    <div className="w-8 h-8 border-2 border-white/10 border-t-secondary rounded-full animate-spin" />
+                    <p className="text-xs text-white/30 mt-3">Đang tải bình luận...</p>
+                </div>
+            ) : commentTree.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10 text-center">
+                    <div className="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center mb-3">
+                        <MessageCircle className="w-6 h-6 text-white/15" />
+                    </div>
+                    <p className="text-sm text-white/40 font-medium mb-1">
+                        Chưa có bình luận nào
+                    </p>
+                    <p className="text-xs text-white/25">
+                        Hãy là người đầu tiên bình luận!
+                    </p>
+                </div>
+            ) : (
+                <div className="divide-y divide-white/5">
+                    {commentTree.map((comment) => (
+                        <CommentItem
+                            key={comment.id}
+                            comment={comment}
+                            onReply={handleReply}
+                            onDelete={handleDelete}
+                            currentUserId={user?.id}
+                        />
+                    ))}
+                </div>
+            )}
+        </>
+    );
+
+    // ===== INLINE MODE =====
+    if (inline) {
+        if (!isOpen) return null;
+        return (
+            <div className="w-full mt-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                {/* Inline Header */}
+                <div className="flex items-center gap-2 mb-3">
+                    <div className="w-6 h-6 rounded-full bg-secondary/15 flex items-center justify-center">
+                        <MessageCircle className="w-3 h-3 text-white" />
+                    </div>
+                    <h3 className="text-sm font-bold text-white/80">Bình luận</h3>
+                    <span className="text-xs text-white/30">{comments.length}</span>
+                </div>
+
+                {/* Input first */}
+                {renderInputArea()}
+
+                {/* Comments */}
+                {renderCommentList()}
+            </div>
+        );
+    }
+
+    // ===== SLIDE-IN PANEL MODE =====
     return (
         <>
             {/* Backdrop */}
@@ -336,123 +484,11 @@ export default function CommentPanel({ songId, isOpen, onClose }: CommentPanelPr
 
                 {/* Comments List */}
                 <div className="flex-1 overflow-y-auto px-5 py-2 min-h-0">
-                    {loading ? (
-                        <div className="flex flex-col items-center justify-center py-16">
-                            <div className="w-8 h-8 border-2 border-white/10 border-t-secondary rounded-full animate-spin" />
-                            <p className="text-xs text-white/30 mt-3">Đang tải bình luận...</p>
-                        </div>
-                    ) : commentTree.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-16 text-center">
-                            <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
-                                <MessageCircle className="w-7 h-7 text-white/15" />
-                            </div>
-                            <p className="text-sm text-white/40 font-medium mb-1">
-                                Chưa có bình luận nào
-                            </p>
-                            <p className="text-xs text-white/25">
-                                Hãy là người đầu tiên bình luận!
-                            </p>
-                        </div>
-                    ) : (
-                        <div className="divide-y divide-white/5">
-                            {commentTree.map((comment) => (
-                                <CommentItem
-                                    key={comment.id}
-                                    comment={comment}
-                                    onReply={handleReply}
-                                    onDelete={handleDelete}
-                                    currentUserId={user?.id}
-                                />
-                            ))}
-                        </div>
-                    )}
+                    {renderCommentList()}
                 </div>
 
                 {/* Input Area */}
-                <div className="shrink-0 border-t border-white/8 px-5 py-4">
-                    {/* Reply indicator */}
-                    {replyTo && (
-                        <div className="flex items-center justify-between mb-2.5 px-3 py-2 rounded-lg bg-secondary/10 border border-secondary/20">
-                            <div className="flex items-center gap-2 min-w-0">
-                                <Reply className="w-3.5 h-3.5 text-secondary shrink-0" />
-                                <span className="text-xs text-secondary truncate">
-                                    Trả lời <strong>{replyTo.userName}</strong>
-                                </span>
-                            </div>
-                            <button
-                                onClick={() => setReplyTo(null)}
-                                className="text-white/40 hover:text-white/60 transition-colors shrink-0 ml-2"
-                            >
-                                <X className="w-3.5 h-3.5" />
-                            </button>
-                        </div>
-                    )}
-
-                    {isLoggedIn ? (
-                        <div className="flex items-end gap-3">
-                            {/* User avatar */}
-                            <div className="shrink-0 mb-0.5">
-                                {user?.avatarUrl ? (
-                                    <Image
-                                        src={user.avatarUrl}
-                                        alt="Avatar"
-                                        width={32}
-                                        height={32}
-                                        className="w-8 h-8 rounded-full object-cover ring-2 ring-white/5"
-                                    />
-                                ) : (
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white text-xs font-semibold ring-2 ring-white/5">
-                                        {user?.name?.charAt(0)?.toUpperCase() || "T"}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Input */}
-                            <div className="flex-1 relative">
-                                <textarea
-                                    ref={inputRef}
-                                    value={newComment}
-                                    onChange={(e) => setNewComment(e.target.value)}
-                                    onKeyDown={handleKeyDown}
-                                    placeholder={replyTo ? `Trả lời ${replyTo.userName}...` : "Viết bình luận..."}
-                                    rows={1}
-                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-2.5 text-sm text-white placeholder:text-white/25
-                                        focus:outline-none focus:border-secondary/40 focus:bg-white/8
-                                        resize-none overflow-hidden transition-all duration-200
-                                        min-h-[40px] max-h-[120px]"
-                                    style={{ fieldSizing: "content" } as React.CSSProperties}
-                                />
-                            </div>
-
-                            {/* Send button */}
-                            <button
-                                onClick={handleSubmit}
-                                disabled={!newComment.trim() || sending}
-                                className={cn(
-                                    "shrink-0 w-9 h-9 rounded-full flex items-center justify-center mb-0.5 transition-all duration-300",
-                                    newComment.trim()
-                                        ? "bg-secondary text-white hover:bg-secondary/90 hover:scale-105 active:scale-95 shadow-lg shadow-secondary/25"
-                                        : "bg-white/5 text-white/20 cursor-not-allowed"
-                                )}
-                            >
-                                {sending ? (
-                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                ) : (
-                                    <Send className="w-4 h-4" />
-                                )}
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="text-center py-2">
-                            <p className="text-sm text-white/40">
-                                <a href="/sign-in" className="text-secondary hover:text-secondary/80 font-medium transition-colors">
-                                    Đăng nhập
-                                </a>
-                                {" "}để bình luận
-                            </p>
-                        </div>
-                    )}
-                </div>
+                {renderInputArea()}
             </div>
         </>
     );
