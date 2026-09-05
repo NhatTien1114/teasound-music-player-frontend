@@ -11,7 +11,7 @@ const page = ({ params }: { params: { authorId: string } }) => {
             <BreadCrumb
                 item={[
                     { href: "/admin/authors", label: "Tác giả" },
-                    { href: "/admin/authors/update", label: "Cập nhật" }
+                    { href: `/admin/authors/update/${authorId}`, label: "Cập nhật" }
                 ]}
                 separetor={<ChevronRight className="w-3.5 h-3.5" />}
             />

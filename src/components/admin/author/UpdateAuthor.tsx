@@ -4,6 +4,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -15,7 +17,7 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Save, Image as ImageIcon, Loader2 } from "lucide-react";
+import { Save, Image as ImageIcon, Loader2, ArrowLeft } from "lucide-react";
 import { UploadButton } from "@/utils/uploadthing";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -28,6 +30,7 @@ const formSchema = z.object({
 });
 
 const UpdateAuthor = ({ authorId }: { authorId: string }) => {
+    const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -80,6 +83,8 @@ const UpdateAuthor = ({ authorId }: { authorId: string }) => {
             });
             if (res?.success) {
                 toast.success(res?.message || "Cập nhật tác giả thành công");
+                router.push("/admin/authors");
+                router.refresh();
             } else {
                 toast.error(res?.message || "Cập nhật thất bại");
             }
@@ -154,25 +159,30 @@ const UpdateAuthor = ({ authorId }: { authorId: string }) => {
                                         Ảnh đại diện (Avatar URL)
                                     </FormLabel>
                                     <FormControl>
-                                        <div className="flex justify-center outline-none h-40 rounded-md font-medium px-3 w-full text-sm border border-grayDark/20 focus:border-primary! transition-all bg-grayDarkest relative">
+                                        <div className="flex justify-center outline-none h-44 rounded-md font-medium px-3 w-full text-sm border border-grayDark/20 focus:border-primary! transition-all bg-grayDarkest relative">
                                             {!imageWatch ? (
-                                                <UploadButton
-                                                    endpoint="imageUploader"
-                                                    onClientUploadComplete={(res) => {
-                                                        console.log("Files: ", res);
-                                                        field.onChange(res[0].url);
-                                                    }}
-                                                    onUploadError={(error: Error) => {
-                                                        console.error(`ERROR! ${error.message}`);
-                                                    }}
-                                                />
+                                                <div className="flex flex-col items-center justify-center gap-2 p-4">
+                                                    <UploadButton
+                                                        endpoint="imageUploader"
+                                                        onClientUploadComplete={(res) => {
+                                                            if (res && res[0]?.url) {
+                                                                field.onChange(res[0].url);
+                                                            }
+                                                        }}
+                                                        onUploadError={(error: Error) => {
+                                                            toast.error(`Lỗi upload ảnh: ${error.message}`);
+                                                        }}
+                                                    />
+                                                    <span className="text-xs text-grayDark/60">Hoặc dán trực tiếp đường link ảnh bên dưới</span>
+                                                </div>
                                             ) : (
                                                 <div className="relative w-full h-full">
                                                     <Image
                                                         alt="Avatar"
                                                         src={imageWatch}
                                                         fill
-                                                        className="w-full h-full object-cover"
+                                                        unoptimized
+                                                        className="w-full h-full object-cover rounded-md"
                                                     />
                                                     <Button
                                                         type="button"
@@ -180,19 +190,36 @@ const UpdateAuthor = ({ authorId }: { authorId: string }) => {
                                                         className="absolute top-2 right-2 h-8 px-3"
                                                         onClick={() => form.setValue("avatar", "")}
                                                     >
-                                                        Xóa
+                                                        Xóa ảnh
                                                     </Button>
                                                 </div>
                                             )}
                                         </div>
                                     </FormControl>
+                                    <Input
+                                        className={inputClasses + " mt-2 h-10 text-sm"}
+                                        placeholder="Hoặc nhập/dán URL ảnh đại diện..."
+                                        value={field.value || ""}
+                                        onChange={(e) => field.onChange(e.target.value)}
+                                    />
                                     <FormMessage className="text-red-400 text-xs" />
                                 </FormItem>
                             )}
                         />
                     </div>
 
-                    <div className="pt-6 flex justify-end border-t border-grayDark/10 mt-8">
+                    <div className="pt-6 flex justify-end items-center gap-3 border-t border-grayDark/10 mt-8">
+                        <Link href="/admin/authors">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="text-grayDark hover:text-white border-grayDark/20 gap-1.5"
+                                disabled={isSubmitting}
+                            >
+                                <ArrowLeft className="w-4 h-4" />
+                                Quay lại
+                            </Button>
+                        </Link>
                         <Button
                             isLoading={isSubmitting}
                             type="submit"

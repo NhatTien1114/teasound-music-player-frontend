@@ -197,7 +197,15 @@ const TableSong = () => {
                                         </div>
                                         <div className="flex flex-col">
                                             <span className="font-semibold text-white text-sm">{song.name}</span>
-                                            <span className="text-xs text-grayDark/70 line-clamp-1 max-w-[280px] mt-0.5">{song.description}</span>
+                                            <div className="flex items-center gap-1.5 text-xs text-grayDark/70 mt-0.5">
+                                                {song.authorName && (
+                                                    <span className="text-primary font-medium">{song.authorName}</span>
+                                                )}
+                                                {song.authorName && song.description && <span>•</span>}
+                                                {song.description && (
+                                                    <span className="line-clamp-1 max-w-[200px]">{song.description}</span>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </TableCell>

@@ -98,10 +98,28 @@ const updateAuthor = async ({ id, data }: { id: number; data: Partial<TAuthorRes
     }
 }
 
+const deleteAuthor = async ({ id }: { id: number }): Promise<TApiResponse<null>> => {
+    try {
+        const response = await axiosInstance.delete(`/api/authors/${id}`);
+        return {
+            success: true,
+            message: response.data?.message || "Xóa tác giả thành công",
+            data: null
+        };
+    } catch (error: any) {
+        return {
+            success: false,
+            message: error.response?.data?.message || "Xóa tác giả thất bại",
+            data: null
+        };
+    }
+}
+
 export const AuthorService = {
     createAuthor,
     getAllAuthors,
     getAllAuthorsPaginated,
     getAuthorById,
     updateAuthor,
+    deleteAuthor,
 }

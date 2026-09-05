@@ -24,9 +24,10 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input";
-import { Save, Image as ImageIcon, Clock, Headphones, Play, Loader2, FileText, Sparkles } from "lucide-react";
+import { Save, Image as ImageIcon, Clock, Headphones, Play, Loader2, FileText, Sparkles, RefreshCw } from "lucide-react";
 import { UploadButton } from "@/utils/uploadthing";
 import Image from "next/image";
+import Link from "next/link";
 import { SongService } from "@/services/SongService";
 import { toast } from "sonner";
 
@@ -55,6 +56,7 @@ function UpdateSong({ songId }: { songId: string }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isFetchingLrc, setIsFetchingLrc] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [isFetchingAuthors, setIsFetchingAuthors] = useState(false);
     const [authors, setAuthors] = useState<TAuthorResponse[]>([]);
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -154,34 +156,51 @@ function UpdateSong({ songId }: { songId: string }) {
         }
     };
 
-    // Fetch authors
-    useEffect(() => {
-        const fetchAuthors = async () => {
-            try {
-                const res = await AuthorService.getAllAuthors();
-                if (res.success && res.data) {
-                    setAuthors(res.data);
+    const loadAuthors = async (showToast = false) => {
+        try {
+            setIsFetchingAuthors(true);
+            const res = await AuthorService.getAllAuthors();
+            if (res.success && res.data) {
+                setAuthors(res.data);
+                if (showToast) {
+                    toast.success("Đã cập nhật danh sách nghệ sĩ");
                 }
-            } catch (error) {
-                console.error("Error fetching authors:", error);
             }
-        };
-        fetchAuthors();
+        } catch (error) {
+            console.error("Error fetching authors:", error);
+            if (showToast) {
+                toast.error("Không thể tải danh sách nghệ sĩ");
+            }
+        } finally {
+            setIsFetchingAuthors(false);
+        }
+    };
+
+    useEffect(() => {
+        loadAuthors();
     }, []);
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         try {
             setIsSubmitting(true);
+            const authorId = parseInt(values.author);
+            if (!authorId || isNaN(authorId)) {
+                toast.error("Vui lòng chọn một nghệ sĩ hợp lệ");
+                return;
+            }
+            const selectedAuthor = authors.find((a) => a.id === authorId);
             const payload = {
                 id: Number(songId),
                 ...values,
-                author: { id: parseInt(values.author) },
+                authorId: authorId,
+                authorName: selectedAuthor?.name,
+                author: { id: authorId, name: selectedAuthor?.name },
             };
             const response = await SongService.updateSong({ data: payload as unknown as TSongResponse });
             if (response.success) {
-                toast.success(response.message);
+                toast.success(response.message || "Cập nhật bài hát thành công");
             } else {
-                toast.error(response.message);
+                toast.error(response.message || "Cập nhật bài hát thất bại");
             }
         } catch (error: any) {
             toast.error(error.message);
@@ -280,7 +299,28 @@ function UpdateSong({ songId }: { songId: string }) {
                             name="author"
                             render={({ field }) => (
                                 <FormItem className="w-full">
-                                    <FormLabel className="text-grayDark mb-3">Nghệ sĩ</FormLabel>
+                                    <div className="flex items-center justify-between mb-3">
+                                        <FormLabel className="text-grayDark">
+                                            Nghệ sĩ <span className="text-red-500">*</span>
+                                        </FormLabel>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => loadAuthors(true)}
+                                                className="text-xs text-grayDark hover:text-white flex items-center gap-1 transition-colors"
+                                                title="Làm mới danh sách nghệ sĩ"
+                                            >
+                                                <RefreshCw className={`w-3 h-3 ${isFetchingAuthors ? 'animate-spin text-primary' : ''}`} />
+                                            </button>
+                                            <Link
+                                                href="/admin/authors"
+                                                target="_blank"
+                                                className="text-xs text-primary hover:underline"
+                                            >
+                                                + Quản lý nghệ sĩ
+                                            </Link>
+                                        </div>
+                                    </div>
 
                                     <Select
                                         onValueChange={field.onChange}
@@ -292,12 +332,18 @@ function UpdateSong({ songId }: { songId: string }) {
                                             </SelectTrigger>
                                         </FormControl>
 
-                                        <SelectContent>
-                                            {authors.map((author) => (
-                                                <SelectItem key={author.id} value={author.id?.toString() || ""}>
-                                                    {author.name}
-                                                </SelectItem>
-                                            ))}
+                                        <SelectContent className="bg-grayDarker border-grayDark/20 text-white placeholder:text-grayDark/50 focus-visible:ring-primary focus-visible:border-primary/50 transition-all max-h-60">
+                                            {authors.length === 0 ? (
+                                                <div className="p-3 text-xs text-grayDark text-center">
+                                                    Không có nghệ sĩ nào. Hãy tạo nghệ sĩ mới trước.
+                                                </div>
+                                            ) : (
+                                                authors.map((author) => (
+                                                    <SelectItem key={author.id} value={author.id?.toString() || ""}>
+                                                        {author.name}
+                                                    </SelectItem>
+                                                ))
+                                            )}
                                         </SelectContent>
                                     </Select>
 
