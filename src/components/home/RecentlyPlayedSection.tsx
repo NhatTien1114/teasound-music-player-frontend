@@ -7,16 +7,20 @@ import { THistoryResponse } from "@/types";
 import { HistoryService } from "@/services/HistoryService";
 
 export default function RecentlyPlayedSection() {
-  const { user } = useUser();
+    const { user } = useUser();
+    return user?.id ? <UserHistory key={user.id} userId={user.id} /> : null;
+}
+
+function UserHistory({ userId }: { userId: number }) {
+
   const [history, setHistory] = useState<THistoryResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchHistory = async () => {
-      if (!user?.id) return;
       try {
         setIsLoading(true);
-        const historyData = await HistoryService.getHistory(user.id);
+        const historyData = await HistoryService.getHistory(userId);
         // Chỉ lấy tối đa 4 bài nhạc nghe gần nhất
         setHistory(historyData.slice(0, 4));
       } catch (error) {
@@ -26,13 +30,13 @@ export default function RecentlyPlayedSection() {
       }
     };
     fetchHistory();
-  }, [user?.id]);
+  }, [userId]);
 
   useEffect(() => {
     const handleHistoryUpdate = (event: Event) => {
       const customEvent = event as CustomEvent<THistoryResponse>;
       const newItem = customEvent.detail;
-      if (!newItem || !newItem.songId) return;
+      if (!newItem?.songId || newItem.userId !== userId) return;
 
       setHistory((prevHistory) => {
         // Loại bỏ bài hát đã có trong danh sách (nếu trùng songId)
@@ -46,13 +50,13 @@ export default function RecentlyPlayedSection() {
     return () => {
       window.removeEventListener("history-updated", handleHistoryUpdate);
     };
-  }, []);
+  }, [userId]);
 
   return (
     <section>
       <h2 className="text-xl font-bold text-white mb-5">Bài hát nghe gần đây</h2>
       <div className="grid grid-cols-2 gap-1">
-        {isLoading && user?.id
+        {isLoading
           ? Array.from({ length: 4 }).map((_, index) => (
             <SongRow key={index} song={{} as THistoryResponse} isLoading={true} />
           ))

@@ -13,7 +13,7 @@ axiosInstance.interceptors.request.use(
     (config) => {
         if (typeof window !== "undefined") {
             const token = localStorage.getItem("token");
-            if (token) {
+            if (token && !config.headers.Authorization) {
                 config.headers.Authorization = `Bearer ${token}`;
             }
         }
@@ -35,7 +35,10 @@ axiosInstance.interceptors.response.use(
             const isAuthPage = window.location.pathname.includes("/sign-in");
             const isAuthMeRequest = error.config?.url?.includes("/api/auth/me");
 
-            if (!isAuthPage && !isAuthMeRequest) {
+            const token = localStorage.getItem("token");
+            const requestToken = error.config?.headers?.Authorization;
+            const staleRequest = requestToken && requestToken !== `Bearer ${token}`;
+            if (!isAuthPage && !isAuthMeRequest && !staleRequest && error.config?.url !== "/api/auth/logout") {
                 localStorage.removeItem("token");
                 window.location.href = "/sign-in";
             }

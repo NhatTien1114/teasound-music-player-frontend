@@ -1,5 +1,7 @@
 import { usePlayer } from "@/hooks/usePlayer";
-import { TPlaylistResponse, TSongResponse } from "@/types";
+import { useRouter } from "next/navigation";
+import { AuthService } from "@/services/AuthService";
+import { TSongResponse } from "@/types";
 import { Music, Play, Plus, Heart } from "lucide-react";
 
 const typeColors: Record<string, string> = {
@@ -19,7 +21,8 @@ const typeColors: Record<string, string> = {
   OTHER: "bg-gray-500",
 };
 
-export default function SongCard({ song, onAddToPlaylist }: { song: TSongResponse, onAddToPlaylist?: (playlist: TPlaylistResponse) => void }) {
+export default function SongCard({ song }: { song: TSongResponse }) {
+  const router = useRouter();
   const { playSong } = usePlayer();
   return (
     <div onClick={() => playSong(song)} className="group cursor-pointer shrink-0 w-[170px]">
@@ -45,10 +48,10 @@ export default function SongCard({ song, onAddToPlaylist }: { song: TSongRespons
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                if (onAddToPlaylist) onAddToPlaylist(song as any);
+                if (song.id) router.push(AuthService.getToken() ? `/playlist?addSong=${song.id}` : "/sign-in");
               }}
               className="w-7 h-7 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors"
-              aria-label="Add to playlist"
+              aria-label="Th?m v?o playlist"
             >
               <Plus className="w-3.5 h-3.5 text-white" />
             </button>

@@ -4,7 +4,8 @@ import { usePlayer } from "@/hooks/usePlayer";
 import { useDominantColor } from "@/hooks/useDominantColor";
 import { SongService } from "@/services/SongService";
 import { TSongResponse } from "@/types";
-import { decodeId } from "@/utils/hashId";
+import slugify from "slugify";
+import { decodeId, encodeId } from "@/utils/hashId";
 import {
     Play,
     Pause,
@@ -21,8 +22,8 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import CommentPanel from "./CommentPanel";
 
@@ -66,9 +67,24 @@ export default function SongLyricView() {
     const encodedId = searchParams.get("id");
     const songId = decodeId(encodedId);
 
-    const { currentSong, isPlaying, audioRef, togglePlay, playSong, seek } = usePlayer();
+    const { currentSong, nextTrack, playingPlaylistId, isPlaying, currentTime: playerTime, duration: playerDuration, volume, setVolume, repeat, toggleRepeat, togglePlay, playSong, seek } = usePlayer();
+    const router = useRouter();
+    const previousTrackId = useRef(currentSong?.id);
+    useEffect(() => {
+        const wasViewingPlayingSong = previousTrackId.current === songId;
+        previousTrackId.current = currentSong?.id;
+        if (playingPlaylistId && wasViewingPlayingSong && currentSong?.id && currentSong.id !== songId) {
+            const slug = slugify(currentSong.name || "song", { lower: true, locale: "vi", strict: true }) || "song";
+            router.replace(`/song/${slug}?id=${encodeId(currentSong.id)}`, { scroll: false });
+        }
+    }, [currentSong, playingPlaylistId, router, songId]);
     const [song, setSong] = useState<TSongResponse | null>(null);
-    const displaySong = song || currentSong;
+    const displaySong = songId && currentSong?.id !== songId
+        ? (song?.id === songId ? song : null)
+        : currentSong;
+    const isCurrent = !!currentSong && currentSong.id === displaySong?.id;
+    const currentTime = isCurrent ? playerTime : 0;
+    const duration = isCurrent ? playerDuration : 0;
     const [loading, setLoading] = useState(!displaySong);
 
     const lyrics = useMemo(() => {
@@ -78,10 +94,7 @@ export default function SongLyricView() {
         }
         return [];
     }, [displaySong?.lyric]);
-    const [currentTime, setCurrentTime] = useState(0);
-    const [duration, setDuration] = useState(0);
     const [currentLineIndex, setCurrentLineIndex] = useState(0);
-    const [volume, setVolume] = useState(1);
     const [showVolumeSlider, setShowVolumeSlider] = useState(false);
     const [showCommentPanel, setShowCommentPanel] = useState(false);
 
@@ -151,25 +164,6 @@ export default function SongLyricView() {
             });
         }
     }, [currentLineIndex]);
-
-    useEffect(() => {
-        if (currentSong?.audioUrl && audioRef.current) {
-            audioRef.current.src = currentSong.audioUrl;
-            audioRef.current.play();
-        }
-    }, [currentSong])
-
-    // Volume control
-    const handleVolumeChange = useCallback(
-        (e: React.ChangeEvent<HTMLInputElement>) => {
-            const newVolume = parseFloat(e.target.value);
-            setVolume(newVolume);
-            if (audioRef.current) {
-                audioRef.current.volume = newVolume;
-            }
-        },
-        [audioRef]
-    );
 
     // Generate background style from dominant color
     const bgStyle = color
@@ -279,39 +273,36 @@ export default function SongLyricView() {
                                 <SkipBack className="w-5 h-5" fill="currentColor" />
                             </button>
                             <button
-                                onClick={() => togglePlay()}
+                                aria-label={isCurrent && isPlaying ? "Tạm dừng" : "Phát"}
+                                onClick={() => isCurrent ? togglePlay() : playSong(displaySong)}
                                 className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center
                                     hover:bg-white/20 hover:scale-105 transition-all duration-300 active:scale-95
                                     ring-1 ring-white/10"
                             >
-                                {isPlaying ? (
+                                {isCurrent && isPlaying ? (
                                     <Pause className="w-5 h-5 text-white" fill="white" />
                                 ) : (
                                     <Play className="w-5 h-5 text-white ml-0.5" fill="white" />
                                 )}
                             </button>
-                            <button className="text-white/80 hover:text-white transition-all duration-200 active:scale-90">
+                            <button aria-label="Bài tiếp" disabled={!isCurrent || playingPlaylistId === null} onClick={nextTrack} className="text-white/80 hover:text-white transition-all duration-200 active:scale-90">
                                 <SkipForward className="w-5 h-5" fill="currentColor" />
                             </button>
-                            <button className="text-white/50 hover:text-white transition-colors duration-200">
+                            <button aria-label="Lặp lại bài hát" aria-pressed={repeat} onClick={toggleRepeat}
+                                className={cn("p-2 rounded-md", repeat ? "text-white bg-white/20" : "text-white/50 hover:text-white")}>
                                 <Repeat className="w-4 h-4" />
                             </button>
                         </div>
 
                         {/* Progress Bar */}
                         <div className="flex items-center gap-3 w-full">
-                            <audio
-                                ref={audioRef}
-                                onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
-                                onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
-                                onEnded={() => togglePlay()}
-                            />
                             <span className="text-xs text-white/40 tabular-nums shrink-0">
                                 {Math.floor(currentTime / 60)}:{Math.floor(currentTime % 60).toString().padStart(2, '0')}
                             </span>
                             <input
                                 type="range"
                                 min={0}
+                                aria-label="Vị trí phát" disabled={!isCurrent}
                                 max={duration || 0}
                                 value={currentTime}
                                 onChange={(e) => seek(Number(e.target.value))}
@@ -341,6 +332,7 @@ export default function SongLyricView() {
                             {/* Volume */}
                             <div className="relative flex items-center gap-2">
                                 <button
+                                    aria-label="Điều chỉnh âm lượng" aria-expanded={showVolumeSlider}
                                     onClick={() => setShowVolumeSlider(!showVolumeSlider)}
                                     className="text-white/50 hover:text-white transition-colors duration-200"
                                 >
@@ -358,7 +350,8 @@ export default function SongLyricView() {
                                         max={1}
                                         step={0.01}
                                         value={volume}
-                                        onChange={handleVolumeChange}
+                                        aria-label="Âm lượng" tabIndex={showVolumeSlider ? 0 : -1}
+                                        onChange={e => setVolume(Number(e.target.value))}
                                         className="w-full h-1 appearance-none bg-white/20 rounded-full cursor-pointer
                                             [&::-webkit-slider-thumb]:appearance-none
                                             [&::-webkit-slider-thumb]:w-3
@@ -441,7 +434,7 @@ export default function SongLyricView() {
                                             : "text-white/30 scale-[0.98] opacity-80"
                                 )}
                                 onClick={() => {
-                                    seek(line.time);
+                                    if (isCurrent) seek(line.time);
                                 }}
                             >
                                 {line.text || "\u00A0"}

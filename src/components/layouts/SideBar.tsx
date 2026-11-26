@@ -9,7 +9,6 @@ import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { UserService } from "@/services/UserService";
 import { AuthService } from "@/services/AuthService";
 import { toast } from "sonner";
 import { menuItems } from "@/constants";
@@ -19,34 +18,7 @@ export default function SideBar() {
   const router = useRouter();
   const [activeItem, setActiveItem] = useState("");
   const [isCollapsed, setIsCollapsed] = useState(true);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userData, setUserData] = useState<{ username?: string, avatar?: string, plan?: string } | null>(null);
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const userProfile = await UserService.getCurrentUser();
-
-        if (userProfile && userProfile.authenticated) {
-          setIsLoggedIn(true);
-          setUserData({
-            username: userProfile.name || userProfile.email || "Tea User",
-            plan: userProfile.role === 'ADMIN' ? 'Quản trị viên' : (userProfile.role ? 'Người dùng' : 'Khách'),
-            avatar: userProfile.avatarUrl
-          });
-        } else {
-          setIsLoggedIn(false);
-          setUserData(null);
-        }
-      } catch (error) {
-        setIsLoggedIn(false);
-        setUserData(null);
-      }
-    };
-    checkAuth();
-    window.addEventListener("auth-change", checkAuth);
-    return () => window.removeEventListener("auth-change", checkAuth);
-  }, []);
+  const { user: userData, isLoggedIn } = useUser();
 
   useEffect(() => {
     const menuItem = menuItems.find((item) => item.url === window.location.pathname)
@@ -182,11 +154,9 @@ export default function SideBar() {
           <button
             onClick={() => {
               if (userData) {
-                AuthService.logout();
-                localStorage.removeItem('isLoggedIn');
-                window.dispatchEvent(new Event('auth-change'));
+                void AuthService.logout();
                 toast.success("Đã đăng xuất thành công");
-                router.push('/');
+                router.replace('/');
               } else {
                 router.push('/sign-in');
               }

@@ -2,24 +2,25 @@
 
 import React, { useState } from "react";
 import { Play, Clock, MoreHorizontal, Music, Plus } from "lucide-react";
-import { TSongResponse } from "@/types";
+import { TPlaylistResponse, TSongResponse } from "@/types";
 import { usePlayer } from "@/hooks/usePlayer";
 
 interface PlaylistSongProps {
-  songs?: TSongResponse[];
+  playlist: TPlaylistResponse;
   allSongs?: TSongResponse[];
   onAddSong?: (song: TSongResponse) => void;
   onRemoveSong?: (songId: number) => void;
 }
 
 export default function PlaylistSong({
-  songs = [],
+  playlist,
   allSongs = [],
   onAddSong,
   onRemoveSong,
 }: PlaylistSongProps) {
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
-  const { currentSong, isPlaying, playSong, togglePlay } = usePlayer();
+  const songs = playlist.songs ?? [];
+  const { currentSong, playingPlaylistId, isPlaying, playPlaylist } = usePlayer();
 
   // Filter out songs that are already in the playlist for the Recommended section
   const recommendedSongs = allSongs.filter(
@@ -41,7 +42,7 @@ export default function PlaylistSong({
 
           <div className="mt-1 space-y-1">
             {songs.map((song, index) => {
-              const isCurrent = currentSong?.id === song.id;
+              const isCurrent = playingPlaylistId === playlist.id && currentSong?.id === song.id;
 
               return (
                 <div
@@ -51,13 +52,7 @@ export default function PlaylistSong({
                   }`}
                   onMouseEnter={() => setHoveredRow(song.id || index)}
                   onMouseLeave={() => setHoveredRow(null)}
-                  onClick={() => {
-                    if (isCurrent) {
-                      togglePlay();
-                    } else {
-                      playSong(song);
-                    }
-                  }}
+                  onClick={() => playPlaylist(playlist, song)}
                 >
                   {/* # / Play Icon */}
                   <div className="flex items-center justify-center w-6 h-6 mx-auto">

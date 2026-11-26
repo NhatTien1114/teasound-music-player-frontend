@@ -46,12 +46,17 @@ export const AuthService = {
     },
 
     logout: async (): Promise<void> => {
+        const token = localStorage.getItem("token");
+        localStorage.removeItem("token");
+        localStorage.removeItem("isLoggedIn");
+        window.dispatchEvent(new Event("auth-change"));
         try {
-            await axiosInstance.post("/api/auth/logout");
+            await axiosInstance.post("/api/auth/logout", {}, {
+                withCredentials: true,
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
+            });
         } catch (error) {
             console.error("Lỗi khi đăng xuất ở backend:", error);
-        } finally {
-            localStorage.removeItem("token");
         }
     },
 

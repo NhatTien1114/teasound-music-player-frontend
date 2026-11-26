@@ -9,19 +9,23 @@ import useUser from "@/hooks/useUser";
 import PlaylistCard from "../playlist/PlaylistCard";
 
 export default function PlaylistSection() {
-    const [playlists, setPlaylists] = useState<TPlaylistResponse[]>([]);
     const { user } = useUser();
+    return user?.id ? <UserPlaylists key={user.id} userId={user.id} /> : null;
+}
+
+function UserPlaylists({ userId }: { userId: number }) {
+    const [playlists, setPlaylists] = useState<TPlaylistResponse[]>([]);
+  
 
     useEffect(() => {
         const fetchPlaylists = async () => {
-            if (!user?.id) return;
-            const response = await PlaylistService.getAllPlaylists(user.id);
+            const response = await PlaylistService.getAllPlaylists(userId);
             if (response.success) {
                 setPlaylists(response.data || []);
             }
         };
         fetchPlaylists();
-    }, [user]);
+    }, [userId]);
 
     if (playlists.length === 0) return null;
 

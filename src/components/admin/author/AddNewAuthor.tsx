@@ -52,8 +52,8 @@ function AddNewAuthor() {
             } else {
                 toast.error(res?.message);
             }
-        } catch (error: any) {
-            toast.error(error.message);
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : "Không thể lưu thay đổi.");
         } finally {
             setIsSubmitting(false);
         }
@@ -65,9 +65,10 @@ function AddNewAuthor() {
         name: 'avatar'
     });
     return (
-        <div className="bg-grayDarker rounded-xl shadow-sm border border-grayDark/20 p-6 md:p-8">
+        <div className="studio-form">
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    <h2 className="studio-section-title">Hồ sơ tác giả</h2>
 
                     {/* Basic Info */}
                     <div className="space-y-6">
@@ -104,7 +105,7 @@ function AddNewAuthor() {
                         />
                     </div>
 
-                    <div className="w-full h-[1px] bg-grayDark/10 my-8"></div>
+                    <h2 className="studio-section-title studio-section-rule">Ảnh đại diện</h2>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                         <FormField
@@ -114,7 +115,7 @@ function AddNewAuthor() {
                                 <FormItem className="col-span-1 md:col-span-2">
                                     <FormLabel className="text-grayDark flex items-center gap-1.5">
                                         <ImageIcon className="w-4 h-4" />
-                                        Ảnh bìa (Thumbnail URL)
+                                        Ảnh tác giả
                                     </FormLabel>
                                     <FormControl>
                                         <div className="flex justify-center outline-none h-40 rounded-md font-medium px-3 w-full text-sm border border-grayDark/20 focus:border-primary! transition-all bg-grayDarkest relative">

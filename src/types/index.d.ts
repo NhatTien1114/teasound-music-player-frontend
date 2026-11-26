@@ -73,7 +73,15 @@ export type TCreateHistoryRequest = {
 export type TPlayerContext = {
     currentSong: TSongResponse | null;
     isPlaying: boolean;
-    audioRef: React.RefObject<HTMLAudioElement>;
+    volume: number;
+    setVolume: (value: number) => void;
+    repeat: boolean;
+    toggleRepeat: () => void;
+    nextTrack: () => void;
+    playingPlaylistId: number | null;
+    repeatingPlaylist: boolean;
+    playPlaylist: (playlist: TPlaylistResponse, song?: TSongResponse) => void;
+    togglePlaylistRepeat: (playlist: TPlaylistResponse) => void;
     currentTime: number;
     duration: number;
     playSong: (song: TSongResponse) => void;

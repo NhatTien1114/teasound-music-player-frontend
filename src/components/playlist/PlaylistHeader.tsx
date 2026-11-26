@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { Music, UserPlus, MoreHorizontal, ListFilter } from "lucide-react";
+import { Music, Repeat, MoreHorizontal, ListFilter } from "lucide-react";
+import { usePlayer } from "@/hooks/usePlayer";
 import { TPlaylistResponse } from "@/types";
 
 interface PlaylistHeaderProps {
@@ -17,6 +18,8 @@ export default function PlaylistHeader({
   userAvatar,
   onOpenEditModal,
 }: PlaylistHeaderProps) {
+  const { playingPlaylistId, repeatingPlaylist, togglePlaylistRepeat } = usePlayer();
+  const loopActive = repeatingPlaylist && playingPlaylistId === playlist?.id;
   const isPublic = playlist?.isPublic !== false;
   const cover = playlist?.coverImage || playlist?.thumbnailUrl;
   const title = playlist?.name || "My Playlist";
@@ -95,8 +98,11 @@ export default function PlaylistHeader({
       {/* Action Row below header (Image 1 bottom row) */}
       <div className="flex items-center justify-between pt-4 border-t border-white/10 mt-2">
         <div className="flex items-center gap-4">
-          <button className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-gray-300 hover:text-white transition-colors">
-            <UserPlus className="w-5 h-5" />
+          <button type="button" aria-pressed={loopActive}
+            disabled={!playlist?.songs?.some(song => song.audioUrl)}
+            onClick={() => playlist && togglePlaylistRepeat(playlist)}
+            className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm disabled:opacity-40 ${loopActive ? "bg-green-500 text-black" : "bg-white/10 text-white hover:bg-white/20"}`}>
+            <Repeat size={17} /> Lặp playlist
           </button>
           <button className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-gray-300 hover:text-white transition-colors">
             <MoreHorizontal className="w-5 h-5" />

@@ -1,8 +1,8 @@
 import { Star, MoreHorizontal } from "lucide-react";
-import { HistoryResponse } from "@/services/HistoryService";
+import type { THistoryResponse } from "@/types";
 import { usePlayer } from "@/hooks/usePlayer";
 
-export default function SongRow({ song, isLoading }: { song: HistoryResponse, isLoading: boolean }) {
+export default function SongRow({ song, isLoading }: { song: THistoryResponse, isLoading: boolean }) {
   const { playSong } = usePlayer();
 
   const handlePlay = () => {

@@ -14,7 +14,7 @@ interface PlaylistCardProps {
 
 export default function PlaylistCard({ playlist, onSelect }: PlaylistCardProps) {
     const router = useRouter();
-    const { playSong } = usePlayer();
+    const { playPlaylist } = usePlayer();
 
     const handleCardClick = () => {
         if (onSelect) {
@@ -29,7 +29,7 @@ export default function PlaylistCard({ playlist, onSelect }: PlaylistCardProps) 
     const handlePlayButtonClick = (e: React.MouseEvent) => {
         e.stopPropagation();
         if (playlist.songs && playlist.songs.length > 0) {
-            playSong(playlist.songs[0]);
+            playPlaylist(playlist);
         }
         handleCardClick();
     };

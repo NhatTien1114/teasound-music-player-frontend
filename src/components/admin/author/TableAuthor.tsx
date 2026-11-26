@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import {
     Table,
@@ -10,13 +10,13 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import Link from 'next/link'
-import { Edit, Trash2, Eye, Users, UserCircle } from 'lucide-react';
+import { Edit, Trash2, UserCircle } from 'lucide-react';
 import Image from 'next/image';
 import { TAuthorResponse } from '@/types';
-import Spinner from '@/components/icons/IconSpinner';
 import AdminFooter from '../AdminFooter';
-import AdminHeader from '../AdminHeader';
-import { Input } from '@/components/ui/input';
+import CatalogFilters from "../CatalogFilters";
+import { useCatalogPage, pageSize } from "../useCatalogPage";
+
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -27,41 +27,12 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from 'sonner';
-import { useRouter, useSearchParams } from 'next/navigation';
 import { AuthorService } from '@/services/AuthorService';
 
 const TableAuthor = () => {
-    const [authors, setAuthors] = useState<TAuthorResponse[]>([]);
-    const [totalPages, setTotalPages] = useState(0);
-    const [totalElements, setTotalElements] = useState(0);
-    const [loading, setLoading] = useState(true);
+    const { data, page, search, loading, filter, refresh } = useCatalogPage<TAuthorResponse>(AuthorService.getAllAuthorsPaginated);
     const [authorToDelete, setAuthorToDelete] = useState<TAuthorResponse | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
-
-    const searchParams = useSearchParams();
-    const router = useRouter();
-    const page = Number(searchParams.get("page") || 1);
-    const search = searchParams.get("search") || "";
-    const LIMIT = 5;
-
-    const fetchAuthors = useCallback(async () => {
-        try {
-            const response = await AuthorService.getAllAuthorsPaginated({
-                page,
-                limit: LIMIT,
-                search,
-            });
-            if (response.success && response.data) {
-                setAuthors(response.data.content);
-                setTotalPages(response.data.totalPages);
-                setTotalElements(response.data.totalElements);
-            }
-        } catch (error) {
-            console.error('Error fetching authors:', error);
-        } finally {
-            setLoading(false);
-        }
-    }, [page, search]);
 
     const handleDeleteAuthor = async () => {
         if (!authorToDelete || !authorToDelete.id) return;
@@ -71,77 +42,27 @@ const TableAuthor = () => {
             if (res.success) {
                 toast.success(res.message || "Xóa tác giả thành công");
                 setAuthorToDelete(null);
-                fetchAuthors();
+                refresh();
             } else {
                 toast.error(res.message || "Xóa tác giả thất bại");
             }
-        } catch (error: any) {
-            toast.error(error.message || "Có lỗi xảy ra khi xóa tác giả");
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : "Có lỗi xảy ra khi xóa tác giả");
         } finally {
             setIsDeleting(false);
         }
     };
 
-    useEffect(() => {
-        fetchAuthors();
-    }, [fetchAuthors]);
-
-    const handleSearch = (value: string) => {
-        const params = new URLSearchParams(searchParams.toString());
-        if (value) {
-            params.set("search", value);
-        } else {
-            params.delete("search");
-        }
-        params.set("page", "1");
-        router.push(`?${params.toString()}`);
-    }
-    if (loading) {
-        return (
-            <div className="flex flex-col items-center justify-center py-20 bg-grayDarker rounded-xl border border-grayDark/20">
-                <Spinner className="size-6 text-primary" />
-                <p className="text-sm text-grayDark mt-3">Đang tải dữ liệu...</p>
-            </div>
-        )
-    }
-
-    if (authors.length === 0) {
-        return (
-            <div className="flex flex-col items-center justify-center py-20 bg-grayDarker rounded-xl border border-grayDark/20">
-                <div className="p-4 rounded-full bg-grayDarkest/50 mb-4">
-                    <Users className="w-8 h-8 text-grayDark/50" />
-                </div>
-                <p className="text-grayDark font-medium">Chưa có tác giả nào</p>
-                <p className="text-sm text-grayDark/60 mt-1">Hãy thêm tác giả đầu tiên của bạn</p>
-                <Link
-                    href="/admin/authors/create"
-                    className="mt-4 px-4 py-2 rounded-lg bg-primary hover:bg-primary/90 text-white text-sm font-medium transition-all hover:scale-[1.02]"
-                >
-                    Thêm tác giả
-                </Link>
-            </div>
-        )
-    }
-
     return (
         <>
-            <div className="flex items-center justify-between">
-                {/* Table Header Bar */}
-                <AdminHeader
-                    icon={Users}
-                    title='Quản lý tác giả'
-                    description='Quản lý danh sách tác giả trong hệ thống'
-                />
-                <div className="flex gap-3">
-                    <Input
-                        onChange={(e) => handleSearch(e.target.value)}
-                        placeholder="Tìm kiếm tác giả..."
-                        className="w-[350px]"
-                        defaultValue={searchParams.get("search") || ""}
-                    />
+            <CatalogFilters search={search} filter={filter} />
+            {loading || !data || !data.content.length ? (
+                <div className="studio-empty" role="status">
+                    {loading ? "Đang tải dữ liệu…" : !data ? "Chưa tải được danh sách." : "Không có kết quả."}
+                    {!loading && !data && <button onClick={refresh}>Thử lại</button>}
                 </div>
-            </div>
-            <div className="bg-grayDarker rounded-xl shadow-lg shadow-black/10 border border-grayDark/20 overflow-hidden text-white">
+            ) : (
+            <div className="studio-panel overflow-hidden">
 
                 <Table className="w-full">
                     <TableHeader>
@@ -152,7 +73,7 @@ const TableAuthor = () => {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {authors.map((author, _) => (
+                        {data.content.map((author) => (
                             <TableRow
                                 key={author.id}
                                 className="border-grayDark/10 hover:bg-white/2 transition-colors group"
@@ -185,9 +106,9 @@ const TableAuthor = () => {
                                     </p>
                                 </TableCell>
                                 <TableCell className="text-right pr-6">
-                                    <div className="flex items-center justify-end gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                                    <div className="flex items-center justify-end gap-1.5">
                                         <Link
-                                            className="size-8 rounded-lg border border-grayDark/15 bg-grayDarkest/50 flex items-center justify-center text-grayDark hover:text-amber-400 hover:border-amber-400/30 hover:bg-amber-400/5 transition-all"
+                                            className="size-11 rounded-lg border border-grayDark/15 bg-grayDarkest/50 flex items-center justify-center text-grayDark hover:text-amber-400 hover:border-amber-400/30 hover:bg-amber-400/5 transition-all"
                                             title="Chỉnh sửa"
                                             href={`/admin/authors/update/${author.id}`}
                                         >
@@ -195,7 +116,7 @@ const TableAuthor = () => {
                                         </Link>
                                         <button
                                             type="button"
-                                            className="size-8 rounded-lg border border-grayDark/15 bg-grayDarkest/50 flex items-center justify-center text-grayDark hover:text-red-400 hover:border-red-400/30 hover:bg-red-400/5 transition-all cursor-pointer"
+                                            className="size-11 rounded-lg border border-grayDark/15 bg-grayDarkest/50 flex items-center justify-center text-grayDark hover:text-red-400 hover:border-red-400/30 hover:bg-red-400/5 transition-all cursor-pointer"
                                             title="Xoá"
                                             onClick={() => setAuthorToDelete(author)}
                                         >
@@ -211,11 +132,11 @@ const TableAuthor = () => {
                 {/* Pagination Footer */}
                 <AdminFooter
                     page={page}
-                    totalPages={totalPages}
-                    totalElements={totalElements}
-                    limit={LIMIT}
+                    totalPages={data.totalPages}
+                    totalElements={data.totalElements}
+                    limit={pageSize}
                 />
-            </div>
+            </div>) }
 
             {/* Delete Confirmation Modal */}
             <Dialog open={!!authorToDelete} onOpenChange={(open) => !open && setAuthorToDelete(null)}>

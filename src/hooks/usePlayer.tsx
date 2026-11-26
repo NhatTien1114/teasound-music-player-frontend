@@ -1,7 +1,7 @@
 "use client"
 
 import { HistoryService } from '@/services/HistoryService';
-import { TPlayerContext, TSongResponse } from '@/types';
+import { TPlayerContext, TPlaylistResponse, TSongResponse } from '@/types';
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import useUser from './useUser';
 
@@ -16,47 +16,37 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     const audioRef = useRef<HTMLAudioElement>(null);
     const { user } = useUser();
 
-    useEffect(() => {
-        if (!currentSong?.audioUrl || !audioRef.current) return;
+    const [volume, setVolume] = useState(1);
+    const [repeatMode, setRepeatMode] = useState<"off" | "song" | "playlist">("off");
+    const [queue, setQueue] = useState<{ id: number; songs: TSongResponse[] } | null>(null);
 
-        audioRef.current.src = currentSong.audioUrl;
-        const playPromise = audioRef.current.play();
-        if (playPromise !== undefined) {
-            playPromise
-                .then(() => setIsPlaying(true))
-                .catch((error) => {
-                    console.error("Lỗi khi phát nhạc:", error);
-                    setIsPlaying(false);
-                });
-        }
+    useEffect(() => {
+        if (audioRef.current) audioRef.current.volume = volume;
+    }, [volume]);
+
+    const startPlayback = (audio: HTMLAudioElement) => {
+        audio.play().catch((error: Error) => {
+            if (error.name !== "AbortError") console.error("Lỗi khi phát nhạc:", error);
+        });
+    };
+
+    useEffect(() => {
+        const audio = audioRef.current;
+        if (!audio || !currentSong?.audioUrl) return;
+        setCurrentTime(0);
+        setDuration(0);
+        audio.src = currentSong.audioUrl;
+        startPlayback(audio);
     }, [currentSong]);
 
     const togglePlay = () => {
-        if (!audioRef.current || !currentSong) return;
-        if (isPlaying) {
-            audioRef.current.pause();
-            setIsPlaying(false);
-        } else {
-            const playPromise = audioRef.current.play();
-            if (playPromise !== undefined) {
-                playPromise
-                    .then(() => setIsPlaying(true))
-                    .catch((error) => {
-                        console.error("Lỗi khi tiếp tục phát nhạc:", error);
-                        setIsPlaying(false);
-                    });
-            }
-        }
+        const audio = audioRef.current;
+        if (!audio || !currentSong?.audioUrl) return;
+        if (audio.paused) startPlayback(audio);
+        else audio.pause();
     };
 
-    const playSong = async (song: TSongResponse) => {
-        if (song.id === currentSong?.id) {
-            togglePlay();
-        } else {
-            setCurrentSong(song);
-        }
-
-        // Lưu/cập nhật lịch sử nghe nhạc và phát sự kiện lên client
+    const recordPlay = async (song: TSongResponse) => {
         if (user?.id && song?.id) {
             try {
                 const historyItem = await HistoryService.createHistory({
@@ -72,6 +62,50 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
+    const startSong = (song: TSongResponse) => {
+        setCurrentSong(song);
+        void recordPlay(song);
+    };
+
+    const playSong = (song: TSongResponse) => {
+        if (!song.audioUrl) return;
+        setQueue(null);
+        if (repeatMode === "playlist") setRepeatMode("off");
+        if (song.id === currentSong?.id) togglePlay();
+        else startSong(song);
+    };
+
+    const playPlaylist = (playlist: TPlaylistResponse, selected?: TSongResponse) => {
+        const songs = playlist.songs?.filter(song => song.audioUrl) ?? [];
+        const song = selected ?? songs[0];
+        if (!playlist.id || !song?.audioUrl) return;
+        if (queue?.id !== playlist.id) setRepeatMode("playlist");
+        setQueue({ id: playlist.id, songs });
+        if (song.id !== currentSong?.id) startSong(song);
+        else if (queue?.id === playlist.id) togglePlay();
+        else if (audioRef.current?.paused) startPlayback(audioRef.current);
+    };
+
+    const togglePlaylistRepeat = (playlist: TPlaylistResponse) => {
+        if (!playlist.songs?.some(song => song.audioUrl)) return;
+        if (queue?.id !== playlist.id) playPlaylist(playlist);
+        setRepeatMode(queue?.id === playlist.id && repeatMode === "playlist" ? "off" : "playlist");
+    };
+
+    const advancePlaylist = (wrap: boolean) => {
+        if (!queue) return;
+        const index = queue.songs.findIndex(song => song.id === currentSong?.id);
+        const next = queue.songs[index + 1] ?? (wrap ? queue.songs[0] : undefined);
+        if (!next) {
+            setIsPlaying(false);
+        } else if (next.id === currentSong?.id && audioRef.current) {
+            audioRef.current.currentTime = 0;
+            startPlayback(audioRef.current);
+        } else {
+            startSong(next);
+        }
+    };
+
     const seek = (time: number) => {
         if (audioRef.current) {
             audioRef.current.currentTime = time;
@@ -80,12 +114,22 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <PlayerContext.Provider value={{ currentSong, isPlaying, currentTime, duration, audioRef, playSong, togglePlay, seek }}>
+        <PlayerContext.Provider value={{ currentSong, isPlaying, currentTime, duration, volume, setVolume, repeat: repeatMode === "song",
+            toggleRepeat: () => setRepeatMode(mode => mode === "song" ? "off" : "song"),
+            nextTrack: () => advancePlaylist(true),
+            playingPlaylistId: queue?.id ?? null, repeatingPlaylist: repeatMode === "playlist",
+            playPlaylist, togglePlaylistRepeat, playSong, togglePlay, seek }}>
             <audio
                 ref={audioRef}
+                loop={repeatMode === "song" || (repeatMode === "playlist" && queue?.songs.length === 1)}
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
                 onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
                 onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
-                onEnded={() => setIsPlaying(false)}
+                onEnded={() => {
+                    setIsPlaying(false);
+                    advancePlaylist(repeatMode === "playlist");
+                }}
                 onError={(e) => {
                     console.error("Audio media element error:", e);
                     setIsPlaying(false);

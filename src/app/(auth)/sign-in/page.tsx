@@ -23,6 +23,7 @@ const SignInContent = () => {
     const router = useRouter();
 
     useEffect(() => {
+        router.prefetch("/admin");
         const registered = searchParams.get('registered');
         const error = searchParams.get('error');
 
@@ -35,7 +36,7 @@ const SignInContent = () => {
             toast.error('Đăng nhập Google thất bại hoặc bị từ chối!');
             window.history.replaceState({}, '', window.location.pathname);
         }
-    }, [searchParams]);
+    }, [searchParams, router]);
 
     const handleLoginSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -43,13 +44,9 @@ const SignInContent = () => {
 
         try {
             const data = await AuthService.login({ email, password });
-            toast.success(`Đăng nhập thành công! Xin chào ${data.name || data.email}`);
+            router.replace(data.role === "ADMIN" ? "/admin" : "/");
             window.dispatchEvent(new Event("auth-change"));
-            if (data.role === 'ADMIN') {
-                router.push('/admin');
-            } else {
-                router.push('/');
-            }
+            toast.success(`Đăng nhập thành công! Xin chào ${data.name || data.email || email}`);
         } catch (err: any) {
             console.error('Login error:', err);
             const message = err.response?.data?.message || 'Tài khoản hoặc mật khẩu không chính xác!';

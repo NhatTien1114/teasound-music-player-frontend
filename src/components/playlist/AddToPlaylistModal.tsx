@@ -46,7 +46,6 @@ export default function AddToPlaylistModal({
           <button
             onClick={async () => {
               await onCreateNewPlaylist();
-              onClose();
             }}
             className="w-full flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-left group border border-white/10"
           >
@@ -69,7 +68,6 @@ export default function AddToPlaylistModal({
                   onClick={async () => {
                     if (pl.id) {
                       await onSelectPlaylist(pl.id);
-                      onClose();
                     }
                   }}
                   className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-white/10 transition-colors text-left"

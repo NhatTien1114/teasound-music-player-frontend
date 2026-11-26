@@ -11,24 +11,35 @@ import { TPlaylistResponse, TSongResponse } from "@/types";
 import Heading from "@/typography/Heading";
 import { Plus, Music } from "lucide-react";
 import { PlaylistService } from "@/services/PlaylistService";
-import useUser from "@/hooks/useUser";
+import useUser, { type TUser } from "@/hooks/useUser";
 import { toast } from "sonner";
 import SongCard from "../home/SongCard";
 
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { decodeId } from "@/utils/hashId";
 
 export default function Playlist() {
+    const { user, isLoading } = useUser();
+    if (isLoading) return <p role="status">Đang tải thư viện…</p>;
+    return <PlaylistLibrary key={user?.id ?? "guest"} user={user} />;
+}
+
+function PlaylistLibrary({ user }: { user: TUser | null }) {
+    const router = useRouter();
     const searchParams = useSearchParams();
     const [songs, setSongs] = useState<TSongResponse[]>([]);
     const [playlists, setPlaylists] = useState<TPlaylistResponse[]>([]);
+    const [isLoadingPlaylists, setIsLoadingPlaylists] = useState(!!user?.id);
     const [activePlaylistId, setActivePlaylistId] = useState<number | null>(null);
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const [selectedSongToAdd, setSelectedSongToAdd] = useState<TSongResponse | null>(null);
+    const selectedSongToAdd = songs.find(song => song.id === Number(searchParams.get("addSong"))) ?? null;
+    const closeSongPicker = () => {
+        const params = new URLSearchParams(searchParams.toString());
+        params.delete("addSong");
+        router.replace(params.size ? `/playlist?${params}` : "/playlist", { scroll: false });
+    };
 
-    const { user } = useUser();
 
     // Fetch songs and user playlists
     useEffect(() => {
@@ -45,6 +56,7 @@ export default function Playlist() {
         const fetchPlaylists = async () => {
             if (user?.id) {
                 const response = await PlaylistService.getAllPlaylists(user.id);
+                setIsLoadingPlaylists(false);
                 if (response.success && response.data) {
                     setPlaylists(response.data);
                     const queryId = searchParams?.get("id");
@@ -76,45 +88,30 @@ export default function Playlist() {
 
     const activePlaylist = playlists.find((p) => p.id === activePlaylistId) || playlists[playlists.length - 1] || null;
 
-    // Feature 1: Click Plus button -> Automatically create a playlist like Image 1
-    const handleCreatePlaylist = async () => {
+    const [isCreating, setIsCreating] = useState(false);
+    const createPlaylist = async (initialSongId?: number) => {
         if (!user?.id) {
             toast.error("Vui lòng đăng nhập để tạo playlist");
             return;
         }
-
-        const playlistNumber = playlists.length + 1;
-        const defaultName = `My Playlist #${playlistNumber}`;
-
-        const response = await PlaylistService.createPlaylist({
-            name: defaultName,
-            thumbnailUrl: "",
-            coverImage: "",
-            isPublic: true,
-            songs: [],
-            userId: Number(user.id),
-        });
-
-        if (response.success && response.data) {
-            const newPlaylist = response.data;
-            setPlaylists((prev) => [...prev, newPlaylist]);
-            if (newPlaylist.id) {
-                setActivePlaylistId(newPlaylist.id);
-            }
-            toast.success(`Đã tạo ${defaultName}`);
-        } else {
-            // Fallback local creation if backend response is mocked
-            const fallbackId = Date.now();
-            const fallbackPlaylist: TPlaylistResponse = {
-                id: fallbackId,
-                name: defaultName,
-                coverImage: "",
+        if (isCreating) return;
+        setIsCreating(true);
+        try {
+            const response = await PlaylistService.createPlaylist({
+                name: `My Playlist #${playlists.length + 1}`,
                 isPublic: true,
-                songs: [],
-            };
-            setPlaylists((prev) => [...prev, fallbackPlaylist]);
-            setActivePlaylistId(fallbackId);
-            toast.success(`Đã tạo ${defaultName}`);
+                initialSongId,
+            });
+            const saved = response.data;
+            if (!response.success || !saved?.id) {
+                toast.error(response.message || "Không thể tạo playlist. Vui lòng thử lại.");
+                return;
+            }
+            setPlaylists(previous => [...previous, saved]);
+            setActivePlaylistId(saved.id);
+            toast.success(`Đã tạo ${saved.name}`);
+        } finally {
+            setIsCreating(false);
         }
     };
 
@@ -143,88 +140,20 @@ export default function Playlist() {
         toast.success("Cập nhật thông tin playlist thành công");
     };
 
-    // Feature 3: Add song to playlist (existing or new)
-    const handleAddSongToExistingPlaylist = async (playlistId: number) => {
-        if (!selectedSongToAdd?.id) return;
-
-        await PlaylistService.addSongToPlaylist(playlistId, selectedSongToAdd.id);
-
-        // Update playlist in local state
-        setPlaylists((prev) =>
-            prev.map((p) => {
-                if (p.id === playlistId) {
-                    const currentSongs = p.songs || [];
-                    if (!currentSongs.some((s) => s.id === selectedSongToAdd.id)) {
-                        return { ...p, songs: [...currentSongs, selectedSongToAdd] };
-                    }
-                }
-                return p;
-            })
-        );
-
-        const target = playlists.find((p) => p.id === playlistId);
-        toast.success(`Đã thêm bài hát vào ${target?.name || "playlist"}`);
-    };
-
-    const handleCreatePlaylistAndAddSong = async () => {
-        if (!selectedSongToAdd) return;
-        if (!user?.id) {
-            toast.error("Vui lòng đăng nhập để tạo playlist");
+    const addSong = async (playlistId: number, song: TSongResponse) => {
+        if (!song.id) return;
+        const result = await PlaylistService.addSongToPlaylist(playlistId, song.id);
+        if (!result.success) {
+            toast.error(result.message || "Kh?ng th? th?m b?i h?t v?o playlist.");
             return;
         }
-
-        const playlistNumber = playlists.length + 1;
-        const defaultName = `My Playlist #${playlistNumber}`;
-
-        const response = await PlaylistService.createPlaylist({
-            name: defaultName,
-            thumbnailUrl: "",
-            coverImage: "",
-            isPublic: true,
-            songs: [selectedSongToAdd],
-            userId: Number(user.id),
-        });
-
-        let newPlId: number | undefined = response.data?.id;
-
-        if (response.success && response.data) {
-            const newPl = response.data;
-            if (newPl.id && selectedSongToAdd.id) {
-                await PlaylistService.addSongToPlaylist(newPl.id, selectedSongToAdd.id);
-            }
-            setPlaylists((prev) => [...prev, { ...newPl, songs: [selectedSongToAdd] }]);
-            if (newPl.id) setActivePlaylistId(newPl.id);
-        } else {
-            const fallbackId = Date.now();
-            newPlId = fallbackId;
-            const fallbackPlaylist: TPlaylistResponse = {
-                id: fallbackId,
-                name: defaultName,
-                songs: [selectedSongToAdd],
-            };
-            setPlaylists((prev) => [...prev, fallbackPlaylist]);
-            setActivePlaylistId(fallbackId);
-        }
-
-        toast.success(`Đã tạo ${defaultName} và thêm bài hát!`);
-    };
-
-    // Add song directly from Recommended section inside active playlist
-    const handleAddRecommendedSong = async (song: TSongResponse) => {
-        if (!activePlaylist?.id || !song.id) return;
-        await PlaylistService.addSongToPlaylist(activePlaylist.id, song.id);
-
-        setPlaylists((prev) =>
-            prev.map((p) => {
-                if (p.id === activePlaylist.id) {
-                    const currentSongs = p.songs || [];
-                    return { ...p, songs: [...currentSongs, song] };
-                }
-                return p;
-            })
-        );
-
-        toast.success(`Đã thêm "${song.name}" vào ${activePlaylist.name}`);
+        setPlaylists(previous => previous.map(playlist => {
+            if (playlist.id !== playlistId || playlist.songs?.some(track => track.id === song.id)) return playlist;
+            return { ...playlist, songs: [...(playlist.songs ?? []), song] };
+        }));
+        setActivePlaylistId(playlistId);
+        toast.success(`?? th?m "${song.name}" v?o playlist`);
+        if (selectedSongToAdd) closeSongPicker();
     };
 
     const handleRemoveSongFromActivePlaylist = async (songId: number) => {
@@ -252,7 +181,8 @@ export default function Playlist() {
             <div className="flex items-center justify-between">
                 <Heading>Danh sách phát</Heading>
                 <button
-                    onClick={handleCreatePlaylist}
+                    disabled={isCreating || isLoadingPlaylists}
+                    onClick={() => createPlaylist()}
                     className="flex items-center gap-2 bg-green-500 hover:bg-green-400 text-black font-bold px-4 py-2 rounded-full transition-all cursor-pointer shadow-lg shadow-green-500/20 text-sm"
                     title="Tạo playlist mới"
                 >
@@ -297,9 +227,9 @@ export default function Playlist() {
 
                     {/* Playlist Songs List + Recommended Section */}
                     <PlaylistSong
-                        songs={activePlaylist.songs || []}
+                        playlist={activePlaylist}
                         allSongs={songs}
-                        onAddSong={handleAddRecommendedSong}
+                        onAddSong={song => activePlaylist.id && addSong(activePlaylist.id, song)}
                         onRemoveSong={handleRemoveSongFromActivePlaylist}
                     />
                 </div>
@@ -309,7 +239,8 @@ export default function Playlist() {
                     <h3 className="text-xl font-bold text-white mb-2">Bạn chưa có playlist nào</h3>
                     <p className="text-sm text-gray-400 mb-6">Nhấn nút bên dưới để tự động tạo playlist mới</p>
                     <button
-                        onClick={handleCreatePlaylist}
+                        disabled={isCreating || isLoadingPlaylists}
+                        onClick={() => createPlaylist()}
                         className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-400 text-black font-bold px-6 py-3 rounded-full transition-all"
                     >
                         <Plus className="w-5 h-5" />
@@ -328,12 +259,12 @@ export default function Playlist() {
 
             {/* Feature 3: Add to Playlist Modal */}
             <AddToPlaylistModal
-                isOpen={isAddModalOpen}
-                onClose={() => setIsAddModalOpen(false)}
+                isOpen={!!selectedSongToAdd && !isLoadingPlaylists}
+                onClose={closeSongPicker}
                 song={selectedSongToAdd}
                 playlists={playlists}
-                onSelectPlaylist={handleAddSongToExistingPlaylist}
-                onCreateNewPlaylist={handleCreatePlaylistAndAddSong}
+                onSelectPlaylist={async id => { if (selectedSongToAdd) await addSong(id, selectedSongToAdd); }}
+                onCreateNewPlaylist={() => createPlaylist(selectedSongToAdd?.id)}
             />
         </div>
     );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useRef, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AuthService } from "@/services/AuthService";
@@ -20,10 +20,12 @@ const AuthRedirectContent = () => {
     const router = useRouter();
     const [isAuthLoading, setIsAuthLoading] = useState(false);
 
+    const exchanging = useRef(false);
     useEffect(() => {
         const loginParam = searchParams.get("login");
 
-        if (loginParam === "success") {
+        if (loginParam === "success" && !exchanging.current) {
+            exchanging.current = true;
             setIsAuthLoading(true);
 
             // Clean up the URL immediately
@@ -31,11 +33,7 @@ const AuthRedirectContent = () => {
 
             const handlePostLogin = async () => {
                 try {
-                    // Exchange HttpOnly cookie for JWT token & fetch profile in parallel with min loading time
-                    const [authData] = await Promise.all([
-                        AuthService.exchangeOAuth2Token(),
-                        new Promise((resolve) => setTimeout(resolve, 1200)),
-                    ]);
+                    const authData = await AuthService.exchangeOAuth2Token();
 
                     if (authData && authData.token) {
                         // Dispatch auth-change event so UI updates immediately
@@ -55,7 +53,7 @@ const AuthRedirectContent = () => {
                         const userProfile = await UserService.getCurrentUser();
                         if (userProfile && userProfile.authenticated) {
                             window.dispatchEvent(new Event("auth-change"));
-                            router.replace("/");
+                            router.replace(userProfile.role === "ADMIN" ? "/admin" : "/");
                         } else {
                             toast.error("Phiên đăng nhập không hợp lệ. Vui lòng thử lại.");
                             router.replace("/sign-in");
@@ -66,7 +64,8 @@ const AuthRedirectContent = () => {
                     toast.error("Đăng nhập bằng Google không thành công. Vui lòng thử lại.");
                     router.replace("/sign-in");
                 } finally {
-                    setTimeout(() => setIsAuthLoading(false), 300);
+                    exchanging.current = false;
+                    setIsAuthLoading(false);
                 }
             };
 

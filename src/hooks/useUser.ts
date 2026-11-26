@@ -22,11 +22,21 @@ const useUser = () => {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
+        let revision = 0;
         const checkAuth = async () => {
+            const request = ++revision;
+            const token = localStorage.getItem("token");
+            if (!token) {
+                setIsLoggedIn(false);
+                setUserData(null);
+                setIsLoading(false);
+                return;
+            }
             setIsLoading(true);
             try {
                 const userProfile = await UserService.getCurrentUser();
 
+                if (request !== revision || localStorage.getItem("token") !== token) return;
                 if (userProfile && userProfile.authenticated) {
                     setIsLoggedIn(true);
                     setUserData({
@@ -45,16 +55,25 @@ const useUser = () => {
                     setIsLoggedIn(false);
                     setUserData(null);
                 }
-            } catch (error) {
+            } catch {
+                if (request !== revision) return;
                 setIsLoggedIn(false);
                 setUserData(null);
             } finally {
-                setIsLoading(false);
+                if (request === revision) setIsLoading(false);
             }
         };
         checkAuth();
         window.addEventListener("auth-change", checkAuth);
-        return () => window.removeEventListener("auth-change", checkAuth);
+        const onStorage = (event: StorageEvent) => {
+            if (event.key === "token" || event.key === null) void checkAuth();
+        };
+        window.addEventListener("storage", onStorage);
+        return () => {
+            revision++;
+            window.removeEventListener("auth-change", checkAuth);
+            window.removeEventListener("storage", onStorage);
+        };
     }, []);
 
     return {

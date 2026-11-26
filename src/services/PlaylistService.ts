@@ -26,7 +26,7 @@ export const PlaylistService = {
         }
     },
 
-    createPlaylist: async (playlist: Partial<TPlaylistResponse>): Promise<TApiResponse<TPlaylistResponse>> => {
+    createPlaylist: async (playlist: { name: string; isPublic: boolean; initialSongId?: number }): Promise<TApiResponse<TPlaylistResponse>> => {
         try {
             const response = await axiosInstance.post(`/api/playlists/create`, playlist);
             return {
@@ -88,7 +88,9 @@ export const PlaylistService = {
         } catch (error: any) {
             return {
                 success: false,
-                message: error.response?.data?.message || "Failed to add song to playlist",
+                message: error.response?.data?.message || (error.response?.status === 403
+                    ? "B?n ch? c? th? th?m b?i h?t v?o playlist c?a m?nh."
+                    : "Kh?ng th? th?m b?i h?t v?o playlist."),
                 data: null
             };
         }

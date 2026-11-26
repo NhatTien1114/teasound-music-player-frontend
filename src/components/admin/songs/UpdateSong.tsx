@@ -121,7 +121,7 @@ function UpdateSong({ songId }: { songId: string }) {
                 url += `&artist_name=${encodeURIComponent(artistName)}`;
             }
 
-            let res = await fetch(url);
+            const res = await fetch(url);
             let data = res.ok ? await res.json() : null;
 
             if (!data || (!data.syncedLyrics && !data.plainLyrics)) {
@@ -202,8 +202,8 @@ function UpdateSong({ songId }: { songId: string }) {
             } else {
                 toast.error(response.message || "Cập nhật bài hát thất bại");
             }
-        } catch (error: any) {
-            toast.error(error.message);
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : "Không thể lưu thay đổi.");
         } finally {
             setIsSubmitting(false);
         }
@@ -221,9 +221,10 @@ function UpdateSong({ songId }: { songId: string }) {
     const inputClasses = "bg-grayDarkest border-grayDark/20 text-white placeholder:text-grayDark/50 focus-visible:ring-primary focus-visible:border-primary/50 transition-all";
 
     return (
-        <div className="bg-grayDarker rounded-xl shadow-sm border border-grayDark/20 p-6 md:p-8">
+        <div className="studio-form">
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    <h2 className="studio-section-title">Thông tin bài hát</h2>
 
                     {/* Basic Info */}
                     <div className="space-y-6">
@@ -260,15 +261,15 @@ function UpdateSong({ songId }: { songId: string }) {
                         />
                     </div>
 
-                    <div className="w-full h-[1px] bg-grayDark/10 my-8"></div>
+                    <h2 className="studio-section-title studio-section-rule">Phân loại và nội dung</h2>
 
                     {/* Media Type Selection */}
-                    <div className="flex flex-cols-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormField
                             control={form.control}
                             name="type"
                             render={({ field }) => (
-                                <FormItem className="w-full mr-5">
+                                <FormItem className="min-w-0 w-full">
                                     <FormLabel className="text-grayDark mb-3">Thể loại</FormLabel>
 
                                     <Select
@@ -458,7 +459,7 @@ function UpdateSong({ songId }: { songId: string }) {
                             render={({ field }) => (
                                 <FormItem className="col-span-1 md:col-span-2">
                                     <div className="space-y-4 rounded-xl bg-grayDarkest border border-grayDark/20 p-5">
-                                        <div className="flex items-center justify-between">
+                                        <div className="flex flex-wrap gap-2 items-center justify-between">
                                             <FormLabel className="text-grayDark font-medium text-sm flex items-center gap-2 mb-0">
                                                 <FileText className="w-4 h-4 text-primary" />
                                                 Lời bài hát (Định dạng LRC hoặc Plain Text)

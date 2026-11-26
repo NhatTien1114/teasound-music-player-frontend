@@ -9,26 +9,16 @@ import {
   SkipForward,
   Star,
   Volume2,
-  Shuffle,
+  Repeat1,
   Maximize2,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
 import slugify from "slugify";
 import { encodeId } from "@/utils/hashId";
 
 export default function NowPlayingBar() {
-  const { currentSong, isPlaying, audioRef, togglePlay, seek } = usePlayer();
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-
-  useEffect(() => {
-    if (currentSong?.audioUrl && audioRef.current) {
-      audioRef.current.src = currentSong.audioUrl;
-      audioRef.current.play();
-    }
-  }, [currentSong])
+  const { currentSong, nextTrack, playingPlaylistId, isPlaying, currentTime, duration, volume, setVolume, repeat, toggleRepeat, togglePlay, seek } = usePlayer();
 
   if (!currentSong) return null;
 
@@ -40,27 +30,20 @@ export default function NowPlayingBar() {
   })
 
   return (
-    <div className="flex items-center gap-5 px-6 py-3 bg-grayDarker/80 backdrop-blur-xl border-t border-white/5">
-      <audio
-        ref={audioRef}
-        onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
-        onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
-        onEnded={() => togglePlay()}
-      />
+    <div className="flex flex-wrap items-center gap-3 lg:gap-5 px-6 py-3 bg-grayDarker/80 backdrop-blur-xl border-t border-white/5">
       {/* Song Info */}
-      <div className="flex items-center gap-3 w-52 shrink-0">
+      <div className="flex items-center gap-3 min-w-0 max-w-52">
         <Link
+          aria-label="Xem lời bài hát"
           href={`/song/${slugifyName}?id=${encodeId(currentSong.id)}`}
-          className={cn(
-            "relative w-12 h-12 rounded-full shrink-0 shadow-lg group/expand",
-            isPlaying && "animate-[spin_8s_linear_infinite]"
-          )}
+          className="relative w-12 h-12 rounded-full shrink-0 shadow-lg group/expand"
         >
           <Image
             src={currentSong.thumbnailUrl ?? "/placeholder.jpg"}
             alt={currentSong.name ?? ""}
             fill
-            className="object-cover rounded-full transition-opacity duration-300"
+            className={cn("object-cover rounded-full transition-opacity duration-300",
+              isPlaying && "motion-safe:animate-[spin_8s_linear_infinite]")}
           />
           <div className="absolute inset-0 bg-black/10 flex items-center justify-center opacity-0 group-hover/expand:opacity-100 transition-opacity duration-300">
             <Maximize2 className="w-4 h-4 text-white" />
@@ -80,7 +63,8 @@ export default function NowPlayingBar() {
           <SkipBack className="w-5 h-5" fill="currentColor" />
         </button>
         <button
-          onClick={() => togglePlay()}
+          aria-label={isPlaying ? "Tạm dừng" : "Phát"}
+          onClick={togglePlay}
           className="w-10 h-10 rounded-full bg-primary flex items-center justify-center hover:shadow-lg hover:bg-primary/50 transition-all duration-300 active:scale-95"
         >
           {isPlaying ? (
@@ -89,7 +73,7 @@ export default function NowPlayingBar() {
             <Play className="w-4 h-4 text-white ml-0.5" fill="white" />
           )}
         </button>
-        <button className="text-grayDark hover:text-white transition-colors duration-200">
+        <button aria-label="Bài tiếp" disabled={playingPlaylistId === null} onClick={nextTrack} className="text-grayDark hover:text-white transition-colors duration-200">
           <SkipForward className="w-5 h-5" fill="currentColor" />
         </button>
       </div>
@@ -97,6 +81,7 @@ export default function NowPlayingBar() {
       {/* Waveform Visualization */}
       <input
         type="range"
+        aria-label="Vị trí phát"
         min={0}
         max={duration || 0}
         value={currentTime}
@@ -116,11 +101,14 @@ export default function NowPlayingBar() {
         <button className="text-yellow-400 hover:text-yellow-300 transition-colors duration-200">
           <Star className="w-4 h-4" fill="currentColor" />
         </button>
-        <button className="text-grayDark hover:text-white transition-colors duration-200">
+        <label className="flex items-center gap-2 text-grayDark">
           <Volume2 className="w-4 h-4" />
-        </button>
-        <button className="text-secondary hover:text-secondary/80 transition-colors duration-200">
-          <Shuffle className="w-4 h-4" />
+          <input type="range" aria-label="Âm lượng" min={0} max={100} value={Math.round(volume * 100)}
+            onChange={e => setVolume(Number(e.target.value) / 100)} className="w-20 accent-secondary" />
+        </label>
+        <button type="button" aria-label="Lặp lại bài hát" aria-pressed={repeat} title="Lặp lại bài hát"
+          onClick={toggleRepeat} className={cn("p-2 rounded-md", repeat ? "text-secondary bg-secondary/15" : "text-grayDark hover:text-white")}>
+          <Repeat1 className="w-5 h-5" />
         </button>
       </div>
     </div>
